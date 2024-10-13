@@ -1,27 +1,33 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from "react"
-import { Inter } from 'next/font/google'
-import './globals.css'
+import { useState } from 'react';
+import { Inter } from 'next/font/google';
+import './globals.css';
 
-import { Toaster } from 'react-hot-toast'
-const inter = Inter({ subsets: ['latin'] })
+import { Toaster } from 'react-hot-toast';
+import Header from '@/components/Header'; // Import your custom Header
+import Sidebar from '@/components/Sidebar'; // Import your custom Sidebar
 
-export default function RootLayout({
-  children
-}: {
+const inter = Inter({ subsets: ['latin'] });
+
+export default function RootLayout({ children } : Readonly<{
   children: React.ReactNode
-}) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [totalEarnings, setTotalEarnings] = useState(0)
+}>) {
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Sidebar state to control open/close
 
   return (
-    <html lang='en'>
+    <html lang="en">
       <body className={inter.className}>
         <div className="min-h-screen bg-gray-50 flex flex-col">
           {/* Header */}
+          <Header
+            onMenuClick={() => setSidebarOpen(!sidebarOpen)} 
+            totalEarnings={0}
+            showMenuButton={true} // Pass a prop to control button visibility
+          />
           <div className="flex flex-1">
             {/* Sidebar */}
+            <Sidebar open={sidebarOpen} />
             <main className="flex-1 p-4 lg:p-8 ml-0 lg:ml-64 transition-all duration-300">
               {children}
             </main>
@@ -30,5 +36,5 @@ export default function RootLayout({
         <Toaster />
       </body>
     </html>
-  )
+  );
 }
