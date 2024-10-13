@@ -26,27 +26,27 @@ export default function Sidebar({ open }: SidebarProps) {
       } lg:translate-x-0`}
     >
       <nav className="h-full flex flex-col justify-between">
-        <div className="px-4">
+        <div className="px-4" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
           {sidebarItems.map((item) => {
             const Icon = item.icon;
             return (
               <Link key={item.href} href={item.href} passHref>
                 <Button
                   variant={pathname === item.href ? "secondary" : "ghost"}
-                  className={`w-full justify-start py-3 mb-1.5 ${ // Added mb-4 for margin-bottom
+                  className={`w-full justify-start py-3 mb-1.5 ${
                     pathname === item.href
                       ? "bg-green-100 text-green-800"
                       : "text-gray-600 hover:bg-gray-100"
                   }`}
                 >
                   <Icon className="mr-3 h-5 w-5" />
-                  <span className="text-base">{item.label}</span>
+                  <span className="text-base font-semibold">{item.label}</span> {/* Added font-semibold */}
                 </Button>
               </Link>
             );
           })}
         </div>
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-gray-200" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
           <Link href="/settings" passHref>
             <Button
               variant={pathname === "/settings" ? "secondary" : "outline"}
@@ -57,7 +57,7 @@ export default function Sidebar({ open }: SidebarProps) {
               }`}
             >
               <Settings className="mr-3 h-5 w-5" />
-              <span className="text-base">Settings</span>
+              <span className="text-base font-semibold">Settings</span> {/* Added font-semibold */}
             </Button>
           </Link>
         </div>
