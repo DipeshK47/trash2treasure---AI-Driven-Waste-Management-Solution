@@ -55,9 +55,26 @@ const config: Config = {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
-  		}
-  	}
+  		},
+  		backdropBlur: {
+  			none: '0',
+  			sm: '4px',
+  			md: '8px',
+  			lg: '16px',
+  			xl: '24px',
+  		},
+  		transitionProperty: {
+  			'height': 'height',
+  			'spacing': 'margin, padding',
+  		},
+  	},
   },
   plugins: [require("tailwindcss-animate")],
+  variants: {
+    extend: {
+      backdropBlur: ['responsive'],
+    },
+  },
 };
+
 export default config;
