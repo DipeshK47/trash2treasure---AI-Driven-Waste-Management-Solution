@@ -242,7 +242,7 @@ function SearchBar() {
     <div
       className="relative w-full"
       style={{
-        background: '#006400',
+        background: '#50C878',
         padding: '1.5px',
         borderRadius: '40px',
         boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.15)',

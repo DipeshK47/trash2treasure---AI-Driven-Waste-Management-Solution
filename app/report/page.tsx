@@ -1,9 +1,9 @@
 'use client'
 import { useState, useCallback, useEffect } from 'react'
-import {  MapPin, Upload, CheckCircle, Loader } from 'lucide-react'
+import { MapPin, Upload, CheckCircle, Loader } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { StandaloneSearchBox,  useJsApiLoader } from '@react-google-maps/api'
+import { StandaloneSearchBox, useJsApiLoader } from '@react-google-maps/api'
 import { Libraries } from '@react-google-maps/api';
 import { createUser, getUserByEmail, createReport, getRecentReports } from '@/utils/db/actions';
 import { useRouter } from 'next/navigation';
@@ -94,10 +94,10 @@ export default function ReportPage() {
   };
 
   const handleVerify = async () => {
-    if (!file) return
+    if (!file) return;
 
-    setVerificationStatus('verifying')
-    
+    setVerificationStatus('verifying');
+
     try {
       const genAI = new GoogleGenerativeAI(geminiApiKey!);
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -128,20 +128,28 @@ export default function ReportPage() {
       const result = await model.generateContent([prompt, ...imageParts]);
       const response = await result.response;
       const text = response.text();
-      
+
       try {
         const parsedResult = JSON.parse(text);
-        if (parsedResult.wasteType && parsedResult.quantity && parsedResult.confidence) {
+        
+        // Handling specific invalid wasteType or zero confidence
+        if (
+          parsedResult.wasteType === "None, this is an image of a logo" ||
+          parsedResult.confidence === 0 ||
+          !parsedResult.wasteType ||
+          !parsedResult.quantity
+        ) {
+          console.error('Invalid verification result:', parsedResult);
+          setVerificationStatus('failure');
+          setVerificationResult(parsedResult); // Still set the result to show error details
+        } else {
           setVerificationResult(parsedResult);
           setVerificationStatus('success');
           setNewReport({
             ...newReport,
             type: parsedResult.wasteType,
-            amount: parsedResult.quantity
+            amount: parsedResult.quantity,
           });
-        } else {
-          console.error('Invalid verification result:', parsedResult);
-          setVerificationStatus('failure');
         }
       } catch (error) {
         console.error('Failed to parse JSON response:', text);
@@ -225,13 +233,13 @@ export default function ReportPage() {
   }, [router]);
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-semibold mb-6 text-gray-800">Report waste</h1>
+    <div className="p-1 max-w-5xl mx-auto">
+      <h1 className="text-3xl font-semibold mb-6 text-gray-800" style={{ fontFamily: 'Times New Roman' }}>Snap & Scrap: Report Waste in a Flash♻️🗑️🚛</h1>
       
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-lg mb-12">
         <div className="mb-8">
-          <label htmlFor="waste-image" className="block text-lg font-medium text-gray-700 mb-2">
-            Upload Waste Image
+          <label htmlFor="waste-image" className="block text-lg  text-gray-700 mb-2 font-bold" style={{ fontFamily: 'Times New Roman' }}>
+            Show Us the Waste 👀
           </label>
           <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl hover:border-green-500 transition-colors duration-300">
             <div className="space-y-1 text-center">
@@ -241,7 +249,7 @@ export default function ReportPage() {
                   htmlFor="waste-image"
                   className="relative cursor-pointer bg-white rounded-md font-medium text-green-600 hover:text-green-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-green-500"
                 >
-                  <span>Upload a file</span>
+                  <span>Click to upload a file 📸</span>
                   <input id="waste-image" name="waste-image" type="file" className="sr-only" onChange={handleFileChange} accept="image/*" />
                 </label>
                 <p className="pl-1">or drag and drop</p>
@@ -260,7 +268,7 @@ export default function ReportPage() {
         <Button 
           type="button" 
           onClick={handleVerify} 
-          className="w-full mb-8 bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg rounded-xl transition-colors duration-300" 
+          className="w-full mb-8 bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-bold rounded-xl transition-colors duration-300" style={{ fontFamily: 'Times New Roman' }}
           disabled={!file || verificationStatus === 'verifying'}
         >
           {verificationStatus === 'verifying' ? (
@@ -268,16 +276,42 @@ export default function ReportPage() {
               <Loader className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
               Verifying...
             </>
-          ) : 'Verify Waste'}
+          ) : 'Verify Trash Info 🗑️'}
         </Button>
 
-        {verificationStatus === 'success' && verificationResult && (
-          <div className="bg-green-50 border-l-4 border-green-400 p-4 mb-8 rounded-r-xl">
+        {verificationResult && (
+          <div
+            className={`p-4 mb-8 rounded-r-xl ${
+              verificationStatus === 'failure' || verificationResult.wasteType === "None, this is an image of a logo" || verificationResult.confidence === 0
+                ? 'bg-red-50 border-l-4 border-red-400'
+                : 'bg-green-50 border-l-4 border-green-400'
+            }`}
+          >
             <div className="flex items-center">
-              <CheckCircle className="h-6 w-6 text-green-400 mr-3" />
+              {(verificationStatus === 'failure' || verificationResult.wasteType === "None, this is an image of a logo" || verificationResult.confidence === 0) ? (
+                <CheckCircle className="h-6 w-6 text-red-400 mr-3" />
+              ) : (
+                <CheckCircle className="h-6 w-6 text-green-400 mr-3" />
+              )}
               <div>
-                <h3 className="text-lg font-medium text-green-800">Verification Successful</h3>
-                <div className="mt-2 text-sm text-green-700">
+                <h3
+                  className={`text-lg font-medium ${
+                    verificationStatus === 'failure' || verificationResult.wasteType === "None, this is an image of a logo" || verificationResult.confidence === 0
+                      ? 'text-red-800'
+                      : 'text-green-800'
+                  }`}
+                >
+                  {(verificationStatus === 'failure' || verificationResult.wasteType === "None, this is an image of a logo" || verificationResult.confidence === 0)
+                    ? 'Verification Failed'
+                    : 'Verification Successful'}
+                </h3>
+                <div
+                  className={`mt-2 text-sm ${
+                    verificationStatus === 'failure' || verificationResult.wasteType === "None, this is an image of a logo" || verificationResult.confidence === 0
+                      ? 'text-red-700'
+                      : 'text-green-700'
+                  }`}
+                >
                   <p>Waste Type: {verificationResult.wasteType}</p>
                   <p>Quantity: {verificationResult.quantity}</p>
                   <p>Confidence: {(verificationResult.confidence * 100).toFixed(2)}%</p>
@@ -289,7 +323,7 @@ export default function ReportPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           <div>
-            <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+            <label htmlFor="location" className="block text-m font-semibold text-gray-700 mb-1" style={{ fontFamily: 'Times New Roman' }}>Where’s the Waste?📍</label>
             {isLoaded ? (
               <StandaloneSearchBox
                 onLoad={onLoad}
@@ -302,8 +336,8 @@ export default function ReportPage() {
                   value={newReport.location}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300"
-                  placeholder="Enter waste location"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-xl italic focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300"
+                  placeholder="Where’s the Waste Located?"
                 />
               </StandaloneSearchBox>
             ) : (
@@ -314,13 +348,13 @@ export default function ReportPage() {
                 value={newReport.location}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300"
-                placeholder="Enter waste location"
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl italic focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300"
+                placeholder="Where’s the Waste Located?"
               />
             )}
           </div>
           <div>
-            <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">Waste Type</label>
+            <label htmlFor="type" className="block text-m font-semibold text-gray-700 mb-1" style={{ fontFamily: 'Times New Roman' }}>Waste Category ♻️</label>
             <input
               type="text"
               id="type"
@@ -328,13 +362,13 @@ export default function ReportPage() {
               value={newReport.type}
               onChange={handleInputChange}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300 bg-gray-100"
-              placeholder="Verified waste type"
+              className="w-full px-4 py-2 border border-gray-300 italic rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300 bg-gray-100"
+              placeholder="Verified Waste Category"
               readOnly
             />
           </div>
           <div>
-            <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">Estimated Amount</label>
+            <label htmlFor="amount" className="block text-m font-semibold text-gray-700 mb-1" style={{ fontFamily: 'Times New Roman' }}>Estimated Quantity of Waste ⚖️</label>
             <input
               type="text"
               id="amount"
@@ -342,27 +376,27 @@ export default function ReportPage() {
               value={newReport.amount}
               onChange={handleInputChange}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300 bg-gray-100"
-              placeholder="Verified amount"
+              className="w-full px-4 py-2 border border-gray-300 rounded-xl italic focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300 bg-gray-100"
+              placeholder="Estimated Trash Load"
               readOnly
             />
           </div>
         </div>
         <Button 
           type="submit" 
-          className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg rounded-xl transition-colors duration-300 flex items-center justify-center"
+          className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg rounded-xl font-extrabold transition-colors duration-300 flex items-center justify-center" style={{ fontFamily: 'Times New Roman' }}
           disabled={isSubmitting}
         >
           {isSubmitting ? (
             <>
-              <Loader className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
+              <Loader className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"  />
               Submitting...
             </>
-          ) : 'Submit Report'}
+          ) : 'Submit Waste Report 🗳️'}
         </Button>
       </form>
 
-      <h2 className="text-3xl font-semibold mb-6 text-gray-800">Recent Reports</h2>
+      <h2 className="text-3xl font-semibold mb-6 text-gray-800" style={{ fontFamily: 'Times New Roman' }}>Recent Submissions 📁</h2>
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
         <div className="max-h-96 overflow-y-auto">
           <table className="w-full">
