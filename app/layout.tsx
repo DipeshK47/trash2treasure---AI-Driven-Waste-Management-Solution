@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Inter } from 'next/font/google';
 import './globals.css';
 
 import { Toaster } from 'react-hot-toast';
 import Header from '@/components/Header'; // Import your custom Header
 import Sidebar from '@/components/Sidebar'; // Import your custom Sidebar
+import { getAvaliableRewards, getUserByEmail } from '@/utils/db/actions';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -14,6 +15,25 @@ export default function RootLayout({ children } : Readonly<{
   children: React.ReactNode
 }>) {
   const [sidebarOpen, setSidebarOpen] = useState(false); // Sidebar state to control open/close
+  const [totalEarnings, setTotalEarnings] = useState(0);
+
+  useEffect(()=>{
+    const fetchTotalEarnings = async()=>{
+      try {
+        const userEmail = localStorage.getItem('userEmail')
+        if(userEmail) {
+          const user = await getUserByEmail(userEmail);
+          if(user){
+            const availableRewards = await getAvaliableRewards(user.id) as any; 
+            setTotalEarnings(availableRewards)
+          }
+        }
+      } catch (e) {
+        console.log('Error fetching total earnings', e)
+      }
+    };
+    fetchTotalEarnings();
+  },[])
 
   return (
     <html lang="en">

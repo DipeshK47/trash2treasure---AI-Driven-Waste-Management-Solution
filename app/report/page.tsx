@@ -249,7 +249,7 @@ export default function ReportPage() {
                   htmlFor="waste-image"
                   className="relative cursor-pointer bg-white rounded-md font-medium text-green-600 hover:text-green-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-green-500"
                 >
-                  <span>Click to upload a file 📸</span>
+                  <span>Click to upload a waste photo 📸</span>
                   <input id="waste-image" name="waste-image" type="file" className="sr-only" onChange={handleFileChange} accept="image/*" />
                 </label>
                 <p className="pl-1">or drag and drop</p>
