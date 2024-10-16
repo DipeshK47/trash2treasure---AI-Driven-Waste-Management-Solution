@@ -1,446 +1,178 @@
+// @ts-nocheck
 'use client'
-import { useState, useCallback, useEffect } from 'react'
-import { MapPin, Upload, CheckCircle, Loader } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { ArrowRight, Leaf, Recycle, Users, Coins, MapPin, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { StandaloneSearchBox, useJsApiLoader } from '@react-google-maps/api'
-import { Libraries } from '@react-google-maps/api';
-import { createUser, getUserByEmail, createReport, getRecentReports } from '@/utils/db/actions';
-import { useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast'
+import { Poppins } from 'next/font/google'
+import Link from 'next/link'
+import ContractInteraction from '@/components/ContractInteraction'
+import { getRecentReports, getAllRewards, getWasteCollectionTasks } from '@/utils/db/actions'
 
-const geminiApiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+const poppins = Poppins({
+  weight: ['300', '400', '600'],
+  subsets: ['latin'],
+  display: 'swap',
+})
 
-const libraries: Libraries = ['places'];
-
-export default function ReportPage() {
-  const [user, setUser] = useState<{ id: number; email: string; name: string } | null>(null);
-  const router = useRouter();
-
-  const [reports, setReports] = useState<Array<{
-    id: number;
-    location: string;
-    wasteType: string;
-    amount: string;
-    createdAt: string;
-  }>>([]);
-
-  const [newReport, setNewReport] = useState({
-    location: '',
-    type: '',
-    amount: '',
-  })
-
-  const [file, setFile] = useState<File | null>(null)
-  const [preview, setPreview] = useState<string | null>(null)
-  const [verificationStatus, setVerificationStatus] = useState<'idle' | 'verifying' | 'success' | 'failure'>('idle')
-  const [verificationResult, setVerificationResult] = useState<{
-    wasteType: string;
-    quantity: string;
-    confidence: number;
-  } | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const [searchBox, setSearchBox] = useState<google.maps.places.SearchBox | null>(null);
-
-  const { isLoaded } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: googleMapsApiKey!,
-    libraries: libraries
-  });
-
-  const onLoad = useCallback((ref: google.maps.places.SearchBox) => {
-    setSearchBox(ref);
-  }, []);
-
-  const onPlacesChanged = () => {
-    if (searchBox) {
-      const places = searchBox.getPlaces();
-      if (places && places.length > 0) {
-        const place = places[0];
-        setNewReport(prev => ({
-          ...prev,
-          location: place.formatted_address || '',
-        }));
-      }
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setNewReport({ ...newReport, [name]: value })
-  }
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const selectedFile = e.target.files[0]
-      setFile(selectedFile)
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        setPreview(e.target?.result as string)
-      }
-      reader.readAsDataURL(selectedFile)
-    }
-  }
-
-  const readFileAsBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const handleVerify = async () => {
-    if (!file) return;
-  
-    setVerificationStatus('verifying');
-  
-    try {
-      const genAI = new GoogleGenerativeAI(geminiApiKey!);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-  
-      const base64Data = await readFileAsBase64(file);
-  
-      const imageParts = [
-        {
-          inlineData: {
-            data: base64Data.split(',')[1],
-            mimeType: file.type,
-          },
-        },
-      ];
-  
-      const prompt = `You are an expert in waste management and recycling. Analyze this image and provide:
-        1. The type of waste (e.g., plastic, paper, glass, metal, organic)
-        2. An estimate of the quantity or amount (in kg or liters)
-        3. Your confidence level in this assessment (as a percentage)
-        
-        Respond **only** in pure JSON format without any additional text or markdown, like this:
-        {
-          "wasteType": "type of waste",
-          "quantity": "estimated quantity with unit",
-          "confidence": confidence level as a number between 0 and 1
-        }`;
-  
-      const result = await model.generateContent([prompt, ...imageParts]);
-      const response = await result.response;
-      let text = response.text();
-  
-      // Sanitize the response by removing Markdown code blocks if present
-      text = text.trim();
-  
-      // Remove code block syntax if present
-      if (text.startsWith("```") && text.endsWith("```")) {
-        text = text.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-      }
-  
-      // Remove any surrounding quotes
-      if ((text.startsWith('"') && text.endsWith('"')) || (text.startsWith("'") && text.endsWith("'"))) {
-        text = text.slice(1, -1);
-      }
-  
-      try {
-        const parsedResult = JSON.parse(text);
-        
-        // Handling specific invalid wasteType or zero confidence
-        if (
-          parsedResult.wasteType === "None, this is an image of a logo" ||
-          parsedResult.confidence === 0 ||
-          !parsedResult.wasteType ||
-          !parsedResult.quantity
-        ) {
-          console.error('Invalid verification result:', parsedResult);
-          setVerificationStatus('failure');
-          setVerificationResult(parsedResult); // Still set the result to show error details
-          toast.error('Verification failed. Please ensure the image clearly shows the waste.');
-        } else {
-          setVerificationResult(parsedResult);
-          setVerificationStatus('success');
-          setNewReport({
-            ...newReport,
-            type: parsedResult.wasteType,
-            amount: parsedResult.quantity,
-          });
-          toast.success('Waste verified successfully!');
-        }
-      } catch (error) {
-        console.error('Failed to parse JSON response:', text);
-        setVerificationStatus('failure');
-        toast.error('Failed to parse verification results. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error verifying waste:', error);
-      setVerificationStatus('failure');
-      toast.error('An error occurred during verification. Please try again.');
-    }
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (verificationStatus !== 'success' || !user) {
-      toast.error('Please verify the waste before submitting or log in.');
-      return;
-    }
-    
-    setIsSubmitting(true);
-    try {
-      const report = await createReport(
-        user.id,
-        newReport.location,
-        newReport.type,
-        newReport.amount,
-        preview || undefined,
-        verificationResult ? JSON.stringify(verificationResult) : undefined
-      ) as any;
-      
-      const formattedReport = {
-        id: report.id,
-        location: report.location,
-        wasteType: report.wasteType,
-        amount: report.amount,
-        createdAt: report.createdAt.toISOString().split('T')[0]
-      };
-      
-      setReports([formattedReport, ...reports]);
-      setNewReport({ location: '', type: '', amount: '' });
-      setFile(null);
-      setPreview(null);
-      setVerificationStatus('idle');
-      setVerificationResult(null);
-      
-
-      toast.success(`Report submitted successfully! You've earned points for reporting waste.`);
-    } catch (error) {
-      console.error('Error submitting report:', error);
-      toast.error('Failed to submit report. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  useEffect(() => {
-    const checkUser = async () => {
-      const email = localStorage.getItem('userEmail');
-      if (email) {
-        let user = await getUserByEmail(email);
-        if (!user) {
-          user = await createUser(email, 'Anonymous User');
-        }
-        setUser(user);
-  
-        try {
-          const recentReports = await getRecentReports();
-          const formattedReports = (recentReports || []).map(report => ({
-            ...report,
-            createdAt: report.createdAt.toISOString().split('T')[0]
-          }));
-          setReports(formattedReports);
-        } catch (error) {
-          console.error('Error fetching recent reports:', error);
-          setReports([]);  // Ensure that `reports` is at least an empty array
-        }
-      } else {
-        router.push('/login');
-      }
-    };
-    checkUser();
-  }, [router]);
-
+function AnimatedGlobe() {
   return (
-    <div className="p-1 max-w-5xl mx-auto">
-      <h1 className="text-3xl font-semibold mb-6 text-gray-800" style={{ fontFamily: 'Times New Roman' }}>Snap & Scrap: Report Waste in a Flash♻️🗑️🚛</h1>
-      
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-lg mb-12">
-        <div className="mb-8">
-          <label htmlFor="waste-image" className="block text-lg  text-gray-700 mb-2 font-bold" style={{ fontFamily: 'Times New Roman' }}>
-            Show Us the Waste 👀
-          </label>
-          <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl hover:border-green-500 transition-colors duration-300">
-            <div className="space-y-1 text-center">
-              <Upload className="mx-auto h-12 w-12 text-gray-400" />
-              <div className="flex text-sm text-gray-600">
-                <label
-                  htmlFor="waste-image"
-                  className="relative cursor-pointer bg-white rounded-md font-medium text-green-600 hover:text-green-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-green-500"
-                >
-                  <span>Click to upload a waste photo 📸</span>
-                  <input id="waste-image" name="waste-image" type="file" className="sr-only" onChange={handleFileChange} accept="image/*" />
-                </label>
-                <p className="pl-1">or drag and drop</p>
-              </div>
-              <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
-            </div>
-          </div>
-        </div>
-        
-        {preview && (
-          <div className="mt-4 mb-8">
-            <img src={preview} alt="Waste preview" className="max-w-full h-auto rounded-xl shadow-md" />
-          </div>
-        )}
-        
-        <Button 
-          type="button" 
-          onClick={handleVerify} 
-          className="w-full mb-8 bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-bold rounded-xl transition-colors duration-300" style={{ fontFamily: 'Times New Roman' }}
-          disabled={!file || verificationStatus === 'verifying'}
-        >
-          {verificationStatus === 'verifying' ? (
-            <>
-              <Loader className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
-              Verifying...
-            </>
-          ) : 'Verify Trash Info 🗑️'}
-        </Button>
-
-        {verificationResult && (
-          <div
-            className={`p-4 mb-8 rounded-r-xl ${
-              verificationStatus === 'failure' || verificationResult.wasteType === "None, this is an image of a logo" || verificationResult.confidence === 0
-                ? 'bg-red-50 border-l-4 border-red-400'
-                : 'bg-green-50 border-l-4 border-green-400'
-            }`}
-          >
-            <div className="flex items-center">
-              {(verificationStatus === 'failure' || verificationResult.wasteType === "None, this is an image of a logo" || verificationResult.confidence === 0) ? (
-                <CheckCircle className="h-6 w-6 text-red-400 mr-3" />
-              ) : (
-                <CheckCircle className="h-6 w-6 text-green-400 mr-3" />
-              )}
-              <div>
-                <h3
-                  className={`text-lg font-medium ${
-                    verificationStatus === 'failure' || verificationResult.wasteType === "None, this is an image of a logo" || verificationResult.confidence === 0
-                      ? 'text-red-800'
-                      : 'text-green-800'
-                  }`}
-                >
-                  {(verificationStatus === 'failure' || verificationResult.wasteType === "None, this is an image of a logo" || verificationResult.confidence === 0)
-                    ? 'Verification Failed'
-                    : 'Verification Successful'}
-                </h3>
-                <div
-                  className={`mt-2 text-sm ${
-                    verificationStatus === 'failure' || verificationResult.wasteType === "None, this is an image of a logo" || verificationResult.confidence === 0
-                      ? 'text-red-700'
-                      : 'text-green-700'
-                  }`}
-                >
-                  <p>Waste Type: {verificationResult.wasteType}</p>
-                  <p>Quantity: {verificationResult.quantity}</p>
-                  <p>Confidence: {(verificationResult.confidence * 100).toFixed(2)}%</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-          <div>
-            <label htmlFor="location" className="block text-m font-semibold text-gray-700 mb-1" style={{ fontFamily: 'Times New Roman' }}>Where’s the Waste?📍</label>
-            {isLoaded ? (
-              <StandaloneSearchBox
-                onLoad={onLoad}
-                onPlacesChanged={onPlacesChanged}
-              >
-                <input
-                  type="text"
-                  id="location"
-                  name="location"
-                  value={newReport.location}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-xl italic focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300"
-                  placeholder="Where’s the Waste Located?"
-                />
-              </StandaloneSearchBox>
-            ) : (
-              <input
-                type="text"
-                id="location"
-                name="location"
-                value={newReport.location}
-                onChange={handleInputChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl italic focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300"
-                placeholder="Where’s the Waste Located?"
-              />
-            )}
-          </div>
-          <div>
-            <label htmlFor="type" className="block text-m font-semibold text-gray-700 mb-1" style={{ fontFamily: 'Times New Roman' }}>Waste Category ♻️</label>
-            <input
-              type="text"
-              id="type"
-              name="type"
-              value={newReport.type}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-2 border border-gray-300 italic rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300 bg-gray-100"
-              placeholder="Verified Waste Category"
-              readOnly
-            />
-          </div>
-          <div>
-            <label htmlFor="amount" className="block text-m font-semibold text-gray-700 mb-1" style={{ fontFamily: 'Times New Roman' }}>Estimated Quantity of Waste ⚖️</label>
-            <input
-              type="text"
-              id="amount"
-              name="amount"
-              value={newReport.amount}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-xl italic focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300 bg-gray-100"
-              placeholder="Estimated Trash Load"
-              readOnly
-            />
-          </div>
-        </div>
-        <Button 
-          type="submit" 
-          className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg rounded-xl font-extrabold transition-colors duration-300 flex items-center justify-center" style={{ fontFamily: 'Times New Roman' }}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <>
-              <Loader className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"  />
-              Submitting...
-            </>
-          ) : 'Submit Waste Report 🗳️'}
-        </Button>
-      </form>
-
-      <h2 className="text-3xl font-semibold mb-6 text-gray-800" style={{ fontFamily: 'Times New Roman' }}>Recent Submissions 📁</h2>
-      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-        <div className="max-h-96 overflow-y-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 sticky top-0">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {reports.map((report) => (
-                <tr key={report.id} className="hover:bg-gray-50 transition-colors duration-200">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <MapPin className="inline-block w-4 h-4 mr-2 text-green-500" />
-                    {report.location}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{report.wasteType}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{report.amount}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{report.createdAt}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <div className="relative w-32 h-32 mx-auto mb-8">
+      <div className="absolute inset-0 rounded-full bg-green-500 opacity-20 animate-pulse"></div>
+      <div className="absolute inset-2 rounded-full bg-green-400 opacity-40 animate-ping"></div>
+      <div className="absolute inset-4 rounded-full bg-green-300 opacity-60 animate-spin"></div>
+      <div className="absolute inset-6 rounded-full bg-green-200 opacity-80 animate-bounce"></div>
+      <Leaf className="absolute inset-0 m-auto h-16 w-16 text-green-600 animate-pulse" />
     </div>
   )
+}
+
+export default function Home() {
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [impactData, setImpactData] = useState({
+    wasteCollected: 0,
+    reportsSubmitted: 0,
+    tokensEarned: 0,
+    co2Offset: 0,
+  });
+
+  useEffect(() => {
+    async function fetchImpactData() {
+      try {
+        const reports = await getRecentReports(100);
+        const rewards = await getAllRewards();
+        const tasks = await getWasteCollectionTasks(100);
+
+        const wasteCollected = tasks.reduce((total, task) => {
+          const match = task.amount.match(/(\d+(\.\d+)?)/);
+          const amount = match ? parseFloat(match[0]) : 0;
+          return total + amount;
+        }, 0);
+
+        const reportsSubmitted = reports.length;
+        const tokensEarned = rewards.reduce((total, reward) => total + (reward.points || 0), 0);
+        const co2Offset = wasteCollected * 0.5;
+
+        setImpactData({
+          wasteCollected: Math.round(wasteCollected * 10) / 10,
+          reportsSubmitted,
+          tokensEarned,
+          co2Offset: Math.round(co2Offset * 10) / 10,
+        });
+      } catch (error) {
+        console.error('Error fetching impact data:', error);
+        setImpactData({
+          wasteCollected: 0,
+          reportsSubmitted: 0,
+          tokensEarned: 0,
+          co2Offset: 0,
+        });
+      }
+    }
+
+    fetchImpactData();
+  }, []);
+
+  const login = () => setLoggedIn(true);
+
+  return (
+    <div
+      className={`container mx-auto px-4 py-16 ${poppins.className}`}
+      // style={{ fontFamily: "'Times New Roman', Times, serif" }}
+      style={{ fontFamily: "'Arial', sans-serif" }} // Inline font styling
+      // style={{ fontFamily: "'Helvetica', sans-serif" }}
+      // style={{ fontFamily: "'Pacifico', cursive" }}
+      // style={{ fontFamily: "'Dancing Script', cursive" }}
+      // style={{ fontFamily: "'Protest Strike', cursive" }}
+      // style={{ fontFamily: "'Lobster', cursive" }}
+      // style={{ fontFamily: "'Courier New', monospace" }}
+      // style={{ fontFamily: "'Consolas', monospace" }}
+      // style={{ fontFamily: "'Indie Flower', cursive" }}
+      // style={{ fontFamily: "'Patrick Hand', cursive" }}
+      // style={{ fontFamily: "'Old English Text MT', serif" }}
+      // style={{ fontFamily: "'Didot', serif" }}
+      // style={{ fontFamily: "'Bodoni', serif" }}
+
+
+    > 
+      <section className="text-center mb-20">
+        <AnimatedGlobe />
+        <h1 className="text-7xl font-bold mb-6 text-gray-800 tracking-tight"> {/* Increased font size */}
+          Trash Today, <span className="text-green-600">Treasure Tomorrow</span>
+        </h1>
+        <p className="text-2xl text-gray-600 max-w-2xl mx-auto leading-relaxed mb-8"> {/* Increased font size */}
+          Join us to turn <span className="font-bold text-gray-600 tracking-tight">Trash</span> into{' '}
+          <span className="font-bold text-green-600">Treasure</span> and earn rewards for a greener tomorrow🌿!
+        </p>
+        {!loggedIn ? (
+          <Button
+            onClick={login}
+            className="bg-green-600 hover:bg-green-700 text-white text-lg py-6 px-10 rounded-full font-medium transition-all duration-300 ease-in-out transform hover:scale-105"
+          >
+            Get Started
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
+        ) : (
+          <Link href="/report">
+            <Button className="bg-green-600 hover:bg-green-700 text-white text-lg py-6 px-10 rounded-full font-medium transition-all duration-300 ease-in-out transform hover:scale-105">
+              Report Waste
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </Link>
+        )}
+      </section>
+
+      <section className="grid md:grid-cols-3 gap-10 mb-20">
+        <FeatureCard
+          icon={Leaf}
+          title="Eco-Friendly ♻️"
+          description="Contribute to a cleaner environment by reporting and collecting waste."
+        />
+        <FeatureCard
+          icon={Coins}
+          title="Earn Rewards 🎁"
+          description="Get tokens for your contributions to waste management efforts."
+        />
+        <FeatureCard
+          icon={Users}
+          title="Community-Driven 👨‍👨"
+          description="Be part of a growing community committed to sustainable practices."
+        />
+      </section>
+
+      <section className="bg-white p-12 rounded-3xl shadow-lg mb-20">
+        <h2 className="text-5xl font-bold mb-12 text-center text-gray-800">Our Impact</h2> {/* Increased font size */}
+        <div className="grid md:grid-cols-4 gap-6">
+          <ImpactCard title="Waste Collected 🗑️" value={`${impactData.wasteCollected} kg`} icon={Recycle} />
+          <ImpactCard title="Reports Submitted ✅" value={impactData.reportsSubmitted.toString()} icon={MapPin} />
+          <ImpactCard title="Tokens Earned 🎫" value={impactData.tokensEarned.toString()} icon={Coins} />
+          <ImpactCard title="CO2 Offset ♻️" value={`${impactData.co2Offset} kg`} icon={Leaf} />
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function ImpactCard({ title, value, icon: Icon }) {
+  const formattedValue =
+    typeof value === 'number' ? value.toLocaleString('en-US', { maximumFractionDigits: 1 }) : value;
+
+  return (
+    <div className="p-6 rounded-xl bg-gray-50 border border-gray-100 transition-all duration-300 ease-in-out hover:shadow-md">
+      <Icon className="h-10 w-10 text-green-500 mb-4" />
+      <p className="text-3xl font-bold mb-2 text-gray-800">{formattedValue}</p>
+      <p className="text-sm text-gray-600">{title}</p>
+    </div>
+  );
+}
+
+function FeatureCard({ icon: Icon, title, description }) {
+  return (
+    <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 ease-in-out flex flex-col items-center text-center">
+      <div className="bg-green-100 p-4 rounded-full mb-6">
+        <Icon className="h-8 w-8 text-green-600" />
+      </div>
+      <h3 className="text-2xl font-semibold mb-4 text-gray-800">{title}</h3> {/* Increased font size */}
+      <p className="text-xl text-gray-600 leading-relaxed">{description}</p> {/* Increased font size */}
+    </div>
+  );
 }
