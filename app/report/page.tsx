@@ -95,15 +95,15 @@ export default function ReportPage() {
 
   const handleVerify = async () => {
     if (!file) return;
-
+  
     setVerificationStatus('verifying');
-
+  
     try {
       const genAI = new GoogleGenerativeAI(geminiApiKey!);
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
+  
       const base64Data = await readFileAsBase64(file);
-
+  
       const imageParts = [
         {
           inlineData: {
@@ -112,39 +112,39 @@ export default function ReportPage() {
           },
         },
       ];
-
+  
       const prompt = `You are an expert in waste management and recycling. Analyze this image and provide:
         1. The type of waste (e.g., plastic, paper, glass, metal, organic)
         2. An estimate of the quantity or amount (in kg or liters)
         3. Your confidence level in this assessment (as a percentage)
-
+        
         Respond **only** in pure JSON format without any additional text or markdown, like this:
         {
           "wasteType": "type of waste",
           "quantity": "estimated quantity with unit",
           "confidence": confidence level as a number between 0 and 1
         }`;
-
+  
       const result = await model.generateContent([prompt, ...imageParts]);
       const response = await result.response;
       let text = response.text();
-
+  
       // Sanitize the response by removing Markdown code blocks if present
       text = text.trim();
-
+  
       // Remove code block syntax if present
       if (text.startsWith("```") && text.endsWith("```")) {
         text = text.replace(/^```json\s*/, '').replace(/\s*```$/, '');
       }
-
+  
       // Remove any surrounding quotes
       if ((text.startsWith('"') && text.endsWith('"')) || (text.startsWith("'") && text.endsWith("'"))) {
         text = text.slice(1, -1);
       }
-
+  
       try {
         const parsedResult = JSON.parse(text);
-
+        
         // Handling specific invalid wasteType or zero confidence
         if (
           parsedResult.wasteType === "None, this is an image of a logo" ||
@@ -184,7 +184,7 @@ export default function ReportPage() {
       toast.error('Please verify the waste before submitting or log in.');
       return;
     }
-
+    
     setIsSubmitting(true);
     try {
       const report = await createReport(
@@ -195,7 +195,7 @@ export default function ReportPage() {
         preview || undefined,
         verificationResult ? JSON.stringify(verificationResult) : undefined
       ) as any;
-
+      
       const formattedReport = {
         id: report.id,
         location: report.location,
@@ -203,13 +203,14 @@ export default function ReportPage() {
         amount: report.amount,
         createdAt: report.createdAt.toISOString().split('T')[0]
       };
-
+      
       setReports([formattedReport, ...reports]);
       setNewReport({ location: '', type: '', amount: '' });
       setFile(null);
       setPreview(null);
       setVerificationStatus('idle');
       setVerificationResult(null);
+      
 
       toast.success(`Report submitted successfully! You've earned points for reporting waste.`);
     } catch (error) {
@@ -229,7 +230,7 @@ export default function ReportPage() {
           user = await createUser(email, 'Anonymous User');
         }
         setUser(user);
-
+  
         try {
           const recentReports = await getRecentReports();
           const formattedReports = (recentReports || []).map(report => ({
@@ -249,17 +250,15 @@ export default function ReportPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-100 to-white px-4 py-4">
-      <h1 className="text-4xl font-bold mb-6 text-gray-800 text-center font-serif" >
-        Snap & Scrap: Report Waste in a Flash♻️🗑️🚛
-      </h1>
-
+    <div className="p-1 max-w-5xl mx-auto">
+      <h1 className="text-3xl font-semibold mb-6 text-gray-800" style={{ fontFamily: 'Times New Roman' }}>Snap & Scrap: Report Waste in a Flash♻️🗑️🚛</h1>
+      
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-lg mb-12">
         <div className="mb-8">
-          <label htmlFor="waste-image" className="block text-xl text-gray-700 mb-2 font-bold" style={{ fontFamily: 'Times New Roman' }}>
+          <label htmlFor="waste-image" className="block text-lg  text-gray-700 mb-2 font-bold" style={{ fontFamily: 'Times New Roman' }}>
             Show Us the Waste 👀
           </label>
-          <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-green-300 border-dashed rounded-xl hover:border-green-500 transition-colors duration-300">
+          <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl hover:border-green-500 transition-colors duration-300">
             <div className="space-y-1 text-center">
               <Upload className="mx-auto h-12 w-12 text-gray-400" />
               <div className="flex text-sm text-gray-600">
@@ -276,16 +275,16 @@ export default function ReportPage() {
             </div>
           </div>
         </div>
-
+        
         {preview && (
           <div className="mt-4 mb-8">
             <img src={preview} alt="Waste preview" className="max-w-full h-auto rounded-xl shadow-md" />
           </div>
         )}
-
-        <Button
-          type="button"
-          onClick={handleVerify}
+        
+        <Button 
+          type="button" 
+          onClick={handleVerify} 
           className="w-full mb-8 bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-bold rounded-xl transition-colors duration-300" style={{ fontFamily: 'Times New Roman' }}
           disabled={!file || verificationStatus === 'verifying'}
         >
@@ -299,10 +298,11 @@ export default function ReportPage() {
 
         {verificationResult && (
           <div
-            className={`p-4 mb-8 rounded-r-xl ${verificationStatus === 'failure' || verificationResult.wasteType === "None, this is an image of a logo" || verificationResult.confidence === 0
+            className={`p-4 mb-8 rounded-r-xl ${
+              verificationStatus === 'failure' || verificationResult.wasteType === "None, this is an image of a logo" || verificationResult.confidence === 0
                 ? 'bg-red-50 border-l-4 border-red-400'
                 : 'bg-green-50 border-l-4 border-green-400'
-              }`}
+            }`}
           >
             <div className="flex items-center">
               {(verificationStatus === 'failure' || verificationResult.wasteType === "None, this is an image of a logo" || verificationResult.confidence === 0) ? (
@@ -312,20 +312,22 @@ export default function ReportPage() {
               )}
               <div>
                 <h3
-                  className={`text-lg font-medium ${verificationStatus === 'failure' || verificationResult.wasteType === "None, this is an image of a logo" || verificationResult.confidence === 0
+                  className={`text-lg font-medium ${
+                    verificationStatus === 'failure' || verificationResult.wasteType === "None, this is an image of a logo" || verificationResult.confidence === 0
                       ? 'text-red-800'
                       : 'text-green-800'
-                    }`}
+                  }`}
                 >
                   {(verificationStatus === 'failure' || verificationResult.wasteType === "None, this is an image of a logo" || verificationResult.confidence === 0)
                     ? 'Verification Failed'
                     : 'Verification Successful'}
                 </h3>
                 <div
-                  className={`mt-2 text-sm ${verificationStatus === 'failure' || verificationResult.wasteType === "None, this is an image of a logo" || verificationResult.confidence === 0
+                  className={`mt-2 text-sm ${
+                    verificationStatus === 'failure' || verificationResult.wasteType === "None, this is an image of a logo" || verificationResult.confidence === 0
                       ? 'text-red-700'
                       : 'text-green-700'
-                    }`}
+                  }`}
                 >
                   <p>Waste Type: {verificationResult.wasteType}</p>
                   <p>Quantity: {verificationResult.quantity}</p>
@@ -397,14 +399,14 @@ export default function ReportPage() {
             />
           </div>
         </div>
-        <Button
-          type="submit"
+        <Button 
+          type="submit" 
           className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg rounded-xl font-extrabold transition-colors duration-300 flex items-center justify-center" style={{ fontFamily: 'Times New Roman' }}
           disabled={isSubmitting}
         >
           {isSubmitting ? (
             <>
-              <Loader className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
+              <Loader className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"  />
               Submitting...
             </>
           ) : 'Submit Waste Report 🗳️'}
