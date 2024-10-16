@@ -21,7 +21,7 @@ import {
   getUserByEmail, 
   getUnreadNotifications, 
   getUserBalance, 
-  markNotificationAsRead, 
+  markNotificationAsRead,
   markAllNotificationsAsRead 
 } from '@/utils/db/actions';
 import { 
@@ -221,7 +221,7 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
     }
   };
 
-  if (loading) {
+if (loading) {
     return <div className="p-4 text-center">Loading Web3 auth...</div>;
   }
 
@@ -230,7 +230,7 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
   }
 
   return (
-    <header className="bg-white bg-opacity-50 backdrop-blur-lg border-b border-emerald-200 sticky top-0 z-50">
+    <header className="bg-white bg-opacity-50 backdrop-blur-lg border-b border-emerald-200 sticky top-0 z-50 shadow-sm dark:bg-gray-800 dark:border-gray-700">
       <div className="relative">
         {isSearchOpen && (
           <div className="fixed inset-0 bg-emerald-200 opacity-50 blur-lg z-10"></div>
@@ -255,8 +255,7 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
                 />
                 {!isMobile && (
                   <span
-                    className="font-serif font-bold text-xl md:text-3xl text-emerald-600"
-                    
+                    className="font-serif font-bold text-xl md:text-3xl text-emerald-700 dark:text-emerald-300 animate-glow"
                   >
                     trash2treasure
                   </span>
@@ -299,7 +298,7 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
 
           {isSearchOpen && (
             <div
-              className="absolute inset-0 bg-white z-50 flex items-center px-4 animate-slide-up"
+              className="absolute inset-0 bg-white dark:bg-gray-800 z-50 flex items-center px-4 animate-slide-up"
               style={{ top: '2rem' }}
             >
               <SearchBar />
@@ -310,7 +309,7 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
                 onClick={() => setIsSearchOpen(false)}
                 aria-label="Close Search"
               >
-                <X className="h-6 w-6 text-emerald-600" />
+                <X className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
               </Button>
             </div>
           )}
