@@ -1,27 +1,31 @@
-import { db } from './dbConfig'
-import { Reports, Rewards, Transactions, Users, CollectedWastes } from './schema'
-import { eq, sql, and, desc } from 'drizzle-orm'
-import { Notifications } from './schema'
+import { db } from './dbConfig';
+import { Reports, Rewards, Transactions, Users, CollectedWastes } from './schema';
+import { eq, sql, and, desc } from 'drizzle-orm';
+import { Notifications } from './schema';
 
+// Create a new user
 export async function createUser(email: string, name: string) {
     try {
-        const [user] = await db.insert(Users).values({ email, name }).returning().execute()
-        return user
-    } catch (error) {
-        console.error('Error creating User', error)
-        return null
-    }
-}
-
-export async function getUserByEmail(email: string) {
-    try {
-        const [user] = await db.select().from(Users).where(eq(Users.email, email)).execute()
+        const [user] = await db.insert(Users).values({ email, name }).returning().execute();
         return user;
     } catch (error) {
-        console.error('Error fetching User', error)
+        console.error('Error creating User', error);
+        return null;
     }
 }
 
+// Fetch user by email
+export async function getUserByEmail(email: string) {
+    try {
+        const [user] = await db.select().from(Users).where(eq(Users.email, email)).execute();
+        return user;
+    } catch (error) {
+        console.error('Error fetching User', error);
+        return null;
+    }
+}
+
+// Fetch unread notifications
 export async function getUnreadNotifications(userId: number) {
     try {
         return await db
@@ -31,22 +35,22 @@ export async function getUnreadNotifications(userId: number) {
             .execute();
     } catch (error) {
         console.error('Error fetching notifications', error);
-        return []; // Return an empty array or handle as appropriate
+        return [];
     }
 }
 
+// Get user balance from reward transactions
 export async function getUserBalance(userId: number): Promise<number> {
     const transactions = await getRewardTransactions(userId) || [];
-    if (!transactions) return 0;
     const balance = transactions.reduce((acc: number, transaction: any) => {
         return transaction.type.startsWith('earned')
             ? acc + transaction.amount
             : acc - transaction.amount;
     }, 0);
-
-    return Math.max(balance, 0); // Ensures the balance is not negative
+    return Math.max(balance, 0);  // Ensure balance is not negative
 }
 
+// Fetch reward transactions for a user
 export async function getRewardTransactions(userId: number) {
     try {
         const transactions = await db.select({
@@ -56,29 +60,33 @@ export async function getRewardTransactions(userId: number) {
             description: Transactions.description,
             date: Transactions.date
         }).from(Transactions).where(eq(Transactions.userId, userId)).orderBy(desc(Transactions.date)).limit(10).execute();
+
         const formattedTransactions = transactions.map(t => ({
             ...t,
-            date: t.date.toISOString().split('T')[0], // Format date as YYYY-MM-DD
+            date: t.date.toISOString().split('T')[0],  // Format date as YYYY-MM-DD
         }));
 
-        return formattedTransactions
+        return formattedTransactions;
     } catch (error) {
-
+        console.error('Error fetching reward transactions', error);
+        return [];
     }
 }
 
+// Mark all notifications as read for a user
 export async function markAllNotificationsAsRead(userId: number) {
     try {
         await db.update(Notifications)
             .set({ isRead: true })
             .where(eq(Notifications.userId, userId))
-            .execute()
+            .execute();
     } catch (error) {
-        console.error('Error marking all notifications as read', error)
-        return null
+        console.error('Error marking all notifications as read', error);
+        return null;
     }
 }
 
+// Create a waste report
 export async function createReport(
     userId: number,
     location: string,
@@ -93,66 +101,73 @@ export async function createReport(
         }).returning().execute();
 
         const pointsEarned = 10;
-        await updateRewardPoints(userId, pointsEarned)
+        await updateRewardPoints(userId, pointsEarned);
 
-        await createTransaction(userId, 'earned_report', pointsEarned, 'Points on for reporting waste')
+        await createTransaction(userId, 'earned_report', pointsEarned, 'Points earned for reporting waste');
+        await createNotifications(userId, `You've earned ${pointsEarned} points!!`, 'reward');
 
-        await createNotifications(userId, `You've earned ${pointsEarned} points!!`, 'reward')
-
-        return report
-    } catch (e) {
-        console.error('error creating report', e)
+        return report;
+    } catch (error) {
+        console.error('Error creating report', error);
+        return null;
     }
 }
 
+// Update user reward points
 export async function updateRewardPoints(userId: number, pointsToAdd: number) {
     try {
         const [updatedReward] = await db.update(Rewards).set({
             points: sql`${Rewards.points} + ${pointsToAdd}`
         }).where(eq(Rewards.userId, userId)).returning().execute();
         return updatedReward;
-    } catch (e) {
-        console.error('Error updting reward points', e)
-        return null
+    } catch (error) {
+        console.error('Error updating reward points', error);
+        return null;
     }
 }
 
+// Create a transaction for a user
 export async function createTransaction(userId: number, type: 'earned_report' | 'earned_collect' | 'redeemed', amount: number, description: string) {
     try {
         const [transaction] = await db.insert(Transactions).values({
             userId, type, amount, description
-        }).returning().execute()
-    } catch (e) {
-        console.error('error creating transactions', e)
-        throw e;
+        }).returning().execute();
+        return transaction;
+    } catch (error) {
+        console.error('Error creating transaction', error);
+        return null;
     }
 }
 
+// Create a notification for a user
 export async function createNotifications(userId: number, message: string, type: string) {
     try {
         const [notification] = await db.insert(Notifications).values({
             userId, message, type
-        }).returning().execute()
-        return notification
-    } catch (e) {
-        console.error('error creating notification')
+        }).returning().execute();
+        return notification;
+    } catch (error) {
+        console.error('Error creating notification', error);
+        return null;
     }
 }
 
+// Fetch recent waste reports
 export async function getRecentReports(limit: number = 10) {
     try {
         const reports = await db.select().from(Reports).orderBy(desc(Reports.createdAt)).limit(limit).execute();
         return reports;
-    } catch (e) {
-        console.error('error fetching recent reports', e)
+    } catch (error) {
+        console.error('Error fetching recent reports', error);
         return [];
     }
 }
 
-export async function getAvaliableRewards(userId: number) {
+// Fetch available rewards for a user
+export async function getAvailableRewards(userId: number) {
     try {
         const userTransactions = await getRewardTransactions(userId);
-        const userPoints = userTransactions?.reduce((total: any, transaction: any) => {
+        const userPoints = userTransactions.reduce((total, transaction) => {
             return transaction.type.startsWith('earned') ? total + transaction.amount : total - transaction.amount;
         }, 0);
 
@@ -168,58 +183,57 @@ export async function getAvaliableRewards(userId: number) {
             id: 0,
             name: 'Your Points',
             cost: userPoints,
-            description: 'Redeem your Earned points',
-            collectionInfo: ' Points earned from reporting and collecting waste'
-        },
-        ...dbRewards];
+            description: 'Redeem your earned points',
+            collectionInfo: 'Points earned from reporting and collecting waste',
+        }, ...dbRewards];
+
         return allRewards;
-    } catch (e) {
-        console.log('error fetching available rewards', e)
-        return []
+    } catch (error) {
+        console.error('Error fetching available rewards', error);
+        return [];
     }
 }
 
+// Fetch waste collection tasks
 export async function getWasteCollectionTasks(limit: number = 20) {
     try {
-        const tasks = await db
-            .select({
-                id: Reports.id,
-                location: Reports.location,
-                wasteType: Reports.wasteType,
-                amount: Reports.amount,
-                status: Reports.status,
-                date: Reports.createdAt,
-                collectorId: Reports.collectorId,
-            })
-            .from(Reports)
-            .limit(limit)
-            .execute();
+        const tasks = await db.select({
+            id: Reports.id,
+            location: Reports.location,
+            wasteType: Reports.wasteType,
+            amount: Reports.amount,
+            status: Reports.status,
+            date: Reports.createdAt,
+            collectorId: Reports.collectorId,
+        }).from(Reports).limit(limit).execute();
 
         return tasks.map(task => ({
             ...task,
             date: task.date.toISOString().split('T')[0],
         }));
     } catch (error) {
-        console.error("Error fetching waste collection tasks:", error);
+        console.error('Error fetching waste collection tasks:', error);
         return [];
     }
 }
 
+// Update the status of a task
 export async function updateTaskStatus(reportId: number, newStatus: string, collectorId?: number) {
     try {
         const updateData: any = { status: newStatus };
         if (collectorId !== undefined) {
             updateData.collectorId = collectorId;
         }
-        const [updateReport] = await db.update(Reports).set(updateData).where(eq(Reports.id, reportId)).returning().execute()
-        return updateData
-    } catch (e) {
-        console.error('error updating tasks')
-        throw e;
+        const [updatedReport] = await db.update(Reports).set(updateData).where(eq(Reports.id, reportId)).returning().execute();
+        return updatedReport;
+    } catch (error) {
+        console.error('Error updating task status', error);
+        return null;
     }
 }
 
-export async function saveReward(userId:number, amount: number) {
+// Save a reward for a user
+export async function saveReward(userId: number, amount: number) {
     try {
         const [reward] = await db.insert(Rewards).values({
             userId,
@@ -228,26 +242,27 @@ export async function saveReward(userId:number, amount: number) {
             points: amount,
             isAvailable: true,
         }).returning().execute();
-    
-        await createTransaction(userId, 'earned_collect', amount, 'Points earned from collecting waste.')
-    } catch (e) {
-        console.log('Error saving rewards',e)
-        throw e;
-    }
 
+        await createTransaction(userId, 'earned_collect', amount, 'Points earned from collecting waste.');
+        return reward;
+    } catch (error) {
+        console.error('Error saving rewards', error);
+        return null;
+    }
 }
 
-export async function saveCollectedWaste(reportId: number, collectorId: number, verificationResult: any){
+// Save collected waste details
+export async function saveCollectedWaste(reportId: number, collectorId: number, verificationResult: any) {
     try {
-        const [CollectedWaste] = await db.insert(CollectedWastes).values({
+        const [collectedWaste] = await db.insert(CollectedWastes).values({
             reportId,
             collectorId,
             collectionDate: new Date(),
-            status: 'verified'
-        }).returning().execute()
-        return CollectedWaste;
-    } catch (e) {
-        console.error('Error saving collecting waste:', e);
-        throw error;
+            status: 'verified',
+        }).returning().execute();
+        return collectedWaste;
+    } catch (error) {
+        console.error('Error saving collected waste:', error);
+        return null;
     }
 }
