@@ -176,3 +176,4 @@ function FeatureCard({ icon: Icon, title, description }) {
     </div>
   );
 }
+ 
