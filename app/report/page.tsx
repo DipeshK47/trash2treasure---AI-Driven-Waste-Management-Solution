@@ -95,15 +95,15 @@ export default function ReportPage() {
 
   const handleVerify = async () => {
     if (!file) return;
-
+  
     setVerificationStatus('verifying');
-
+  
     try {
       const genAI = new GoogleGenerativeAI(geminiApiKey!);
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
+  
       const base64Data = await readFileAsBase64(file);
-
+  
       const imageParts = [
         {
           inlineData: {
@@ -112,23 +112,36 @@ export default function ReportPage() {
           },
         },
       ];
-
+  
       const prompt = `You are an expert in waste management and recycling. Analyze this image and provide:
         1. The type of waste (e.g., plastic, paper, glass, metal, organic)
         2. An estimate of the quantity or amount (in kg or liters)
         3. Your confidence level in this assessment (as a percentage)
         
-        Respond in JSON format like this:
+        Respond **only** in pure JSON format without any additional text or markdown, like this:
         {
           "wasteType": "type of waste",
           "quantity": "estimated quantity with unit",
           "confidence": confidence level as a number between 0 and 1
         }`;
-
+  
       const result = await model.generateContent([prompt, ...imageParts]);
       const response = await result.response;
-      const text = response.text();
-
+      let text = response.text();
+  
+      // Sanitize the response by removing Markdown code blocks if present
+      text = text.trim();
+  
+      // Remove code block syntax if present
+      if (text.startsWith("```") && text.endsWith("```")) {
+        text = text.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      }
+  
+      // Remove any surrounding quotes
+      if ((text.startsWith('"') && text.endsWith('"')) || (text.startsWith("'") && text.endsWith("'"))) {
+        text = text.slice(1, -1);
+      }
+  
       try {
         const parsedResult = JSON.parse(text);
         
@@ -142,6 +155,7 @@ export default function ReportPage() {
           console.error('Invalid verification result:', parsedResult);
           setVerificationStatus('failure');
           setVerificationResult(parsedResult); // Still set the result to show error details
+          toast.error('Verification failed. Please ensure the image clearly shows the waste.');
         } else {
           setVerificationResult(parsedResult);
           setVerificationStatus('success');
@@ -150,14 +164,17 @@ export default function ReportPage() {
             type: parsedResult.wasteType,
             amount: parsedResult.quantity,
           });
+          toast.success('Waste verified successfully!');
         }
       } catch (error) {
         console.error('Failed to parse JSON response:', text);
         setVerificationStatus('failure');
+        toast.error('Failed to parse verification results. Please try again.');
       }
     } catch (error) {
       console.error('Error verifying waste:', error);
       setVerificationStatus('failure');
+      toast.error('An error occurred during verification. Please try again.');
     }
   }
 
