@@ -1,5 +1,3 @@
-// ReportPage.tsx
-
 'use client';
 import { useState, useCallback, useEffect } from 'react';
 import { MapPin, Upload, CheckCircle, Loader } from 'lucide-react';
