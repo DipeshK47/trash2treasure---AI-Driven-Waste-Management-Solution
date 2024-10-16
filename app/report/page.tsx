@@ -118,7 +118,7 @@ export default function ReportPage() {
         2. An estimate of the quantity or amount (in kg or liters)
         3. Your confidence level in this assessment (as a percentage)
         
-        Respond **only** in pure JSON format without any additional text or markdown, like this:
+        Respond *only* in pure JSON format without any additional text or markdown, like this:
         {
           "wasteType": "type of waste",
           "quantity": "estimated quantity with unit",
@@ -133,8 +133,8 @@ export default function ReportPage() {
       text = text.trim();
   
       // Remove code block syntax if present
-      if (text.startsWith("```") && text.endsWith("```")) {
-        text = text.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      if (text.startsWith("") && text.endsWith("")) {
+        text = text.replace(/^json\s*/, '').replace(/\s*$/, '');
       }
   
       // Remove any surrounding quotes
@@ -212,7 +212,7 @@ export default function ReportPage() {
       setVerificationResult(null);
       
 
-      toast.success(`Report submitted successfully! You've earned points for reporting waste.`);
+      toast.success(Report submitted successfully! You've earned points for reporting waste.);
     } catch (error) {
       console.error('Error submitting report:', error);
       toast.error('Failed to submit report. Please try again.');
@@ -240,7 +240,7 @@ export default function ReportPage() {
           setReports(formattedReports);
         } catch (error) {
           console.error('Error fetching recent reports:', error);
-          setReports([]);  // Ensure that `reports` is at least an empty array
+          setReports([]);  // Ensure that reports is at least an empty array
         }
       } else {
         router.push('/login');
@@ -251,7 +251,7 @@ export default function ReportPage() {
 
   return (
     <div className="p-1 max-w-5xl mx-auto">
-      <h1 className="text-3xl font-semibold mb-6 text-gray-800" style={{ fontFamily: 'Times New Roman' }}>Snap & Scrap: Report Waste in a Flash♻️🗑️🚛</h1>
+      <h1 className="text-3xl font-semibold mb-6 text-gray-800" style={{ fontFamily: 'Times New Roman' }}>Snap & Scrap: Report Waste in a Flash♻🗑🚛</h1>
       
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-lg mb-12">
         <div className="mb-8">
@@ -293,7 +293,7 @@ export default function ReportPage() {
               <Loader className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
               Verifying...
             </>
-          ) : 'Verify Trash Info 🗑️'}
+          ) : 'Verify Trash Info 🗑'}
         </Button>
 
         {verificationResult && (
@@ -371,7 +371,7 @@ export default function ReportPage() {
             )}
           </div>
           <div>
-            <label htmlFor="type" className="block text-m font-semibold text-gray-700 mb-1" style={{ fontFamily: 'Times New Roman' }}>Waste Category ♻️</label>
+            <label htmlFor="type" className="block text-m font-semibold text-gray-700 mb-1" style={{ fontFamily: 'Times New Roman' }}>Waste Category ♻</label>
             <input
               type="text"
               id="type"
@@ -385,7 +385,7 @@ export default function ReportPage() {
             />
           </div>
           <div>
-            <label htmlFor="amount" className="block text-m font-semibold text-gray-700 mb-1" style={{ fontFamily: 'Times New Roman' }}>Estimated Quantity of Waste ⚖️</label>
+            <label htmlFor="amount" className="block text-m font-semibold text-gray-700 mb-1" style={{ fontFamily: 'Times New Roman' }}>Estimated Quantity of Waste ⚖</label>
             <input
               type="text"
               id="amount"
@@ -409,7 +409,7 @@ export default function ReportPage() {
               <Loader className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"  />
               Submitting...
             </>
-          ) : 'Submit Waste Report 🗳️'}
+          ) : 'Submit Waste Report 🗳'}
         </Button>
       </form>
 
