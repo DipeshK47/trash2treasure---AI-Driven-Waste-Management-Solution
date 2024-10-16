@@ -255,8 +255,8 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
                 />
                 {!isMobile && (
                   <span
-                    className="font-bold text-xl md:text-3xl text-emerald-600"
-                    style={{ fontFamily: 'Times New Roman' }}
+                    className="font-serif font-bold text-xl md:text-3xl text-emerald-600"
+                    
                   >
                     trash2treasure
                   </span>
