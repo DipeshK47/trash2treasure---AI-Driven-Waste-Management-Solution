@@ -212,169 +212,195 @@ export default function CollectPage() {
     )
 
     return (
-        <div className="p-4 sm:p-6 lg:p-3 max-w-4xl mx-auto">
-            <h1 className="text-4xl font-semibold mb-6 text-gray-800" style={{ fontFamily: 'Roboto' }}>Clean-Up Quests🧹🚨</h1>
+        <div className="min-h-screen bg-gradient-to-b from-green-100 to-white px-4 py-4">
+            <div className="max-w-screen-lg mx-auto">
+                <h1 className="text-3xl lg:text-4xl font-bold mb-6 text-gray-800 font-serif">
+                    Clean-Up Quests 🧹
+                </h1>
 
-            <div className="mb-4 flex items-center">
-                <Input
-                    type="text"
-                    placeholder="Explore areas near you..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="mr-2"
-                />
-                <Button variant="outline" size="icon">
-                    <Search className="h-4 w-4" />
-                </Button>
-            </div>
-
-            {loading ? (
-                <div className="flex justify-center items-center h-64">
-                    <Loader className="animate-spin h-8 w-8 text-gray-500" />
+                <div className="mb-4 flex items-center">
+                    <Input
+                        type="text"
+                        placeholder="Explore areas near you..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-xl italic focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300 mr-2"
+                    />
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="bg-white border border-green-600 text-green-600 hover:bg-green-100"
+                    >
+                        <Search className="h-4 w-4" />
+                    </Button>
                 </div>
-            ) : (
-                <>
-                    <div className="space-y-4">
-                        {paginatedTasks.map(task => (
-                            <div key={task.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                                <div className="flex justify-between items-center mb-2">
-                                    <h2 className="text-lg font-medium text-gray-800 flex items-center">
-                                        <MapPin className="w-5 h-5 mr-2 text-gray-500" />
-                                        {task.location}
-                                    </h2>
-                                    <StatusBadge status={task.status} />
-                                </div>
-                                <div className="grid grid-cols-3 gap-2 text-sm text-gray-600 mb-3">
-                                    <div className="flex items-center relative">
-                                        <Trash2 className="w-4 h-4 mr-2 text-gray-500" />
-                                        <span
-                                            onMouseEnter={() => setHoveredWasteType(task.wasteType)}
-                                            onMouseLeave={() => setHoveredWasteType(null)}
-                                            className="cursor-pointer"
-                                        >
-                                            {task.wasteType.length > 8 ? `${task.wasteType.slice(0, 8)}...` : task.wasteType}
-                                        </span>
-                                        {hoveredWasteType === task.wasteType && (
-                                            <div className="absolute left-0 top-full mt-1 p-2 bg-gray-800 text-white text-xs rounded shadow-lg z-10">
-                                                {task.wasteType}
-                                            </div>
+
+                {loading ? (
+                    <div className="flex justify-center items-center h-64">
+                        <Loader className="animate-spin h-8 w-8 text-gray-500" />
+                    </div>
+                ) : (
+                    <>
+                        <div className="space-y-4">
+                            {paginatedTasks.map(task => (
+                                <div key={task.id} className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h2 className="text-lg font-bold text-gray-800 flex items-center">
+                                            <MapPin className="w-5 h-5 mr-2 text-green-500" />
+                                            {task.location}
+                                        </h2>
+                                        <StatusBadge status={task.status} />
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-4 text-sm text-gray-600 mb-4">
+                                        <div className="flex items-center relative">
+                                            <Trash2 className="w-4 h-4 mr-2 text-gray-500" />
+                                            <span
+                                                onMouseEnter={() => setHoveredWasteType(task.wasteType)}
+                                                onMouseLeave={() => setHoveredWasteType(null)}
+                                                className="cursor-pointer"
+                                            >
+                                                {task.wasteType.length > 8 ? `${task.wasteType.slice(0, 8)}...` : task.wasteType}
+                                            </span>
+                                            {hoveredWasteType === task.wasteType && (
+                                                <div className="absolute left-0 top-full mt-1 p-2 bg-gray-800 text-white text-xs rounded shadow-lg z-10">
+                                                    {task.wasteType}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center">
+                                            <Weight className="w-4 h-4 mr-2 text-gray-500" />
+                                            {task.amount}
+                                        </div>
+                                        <div className="flex items-center">
+                                            <Calendar className="w-4 h-4 mr-2 text-gray-500" />
+                                            {task.date}
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-end">
+                                        {task.status === 'pending' && (
+                                            <Button
+                                                onClick={() => handleStatusChange(task.id, 'in_progress')}
+                                                className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-xl transition-colors duration-300"
+                                            >
+                                                Start Collection
+                                            </Button>
+                                        )}
+                                        {task.status === 'in_progress' && task.collectorId === user?.id && (
+                                            <Button
+                                                onClick={() => setSelectedTask(task)}
+                                                className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-xl transition-colors duration-300"
+                                            >
+                                                Submit and Verify ✔️
+                                            </Button>
+                                        )}
+                                        {task.status === 'in_progress' && task.collectorId !== user?.id && (
+                                            <span className="text-yellow-600 text-sm font-medium">In progress by another collector</span>
+                                        )}
+                                        {task.status === 'verified' && (
+                                            <span className="text-green-600 text-sm font-medium">Reward Earned</span>
                                         )}
                                     </div>
-                                    <div className="flex items-center">
-                                        <Weight className="w-4 h-4 mr-2 text-gray-500" />
-                                        {task.amount}
-                                    </div>
-                                    <div className="flex items-center">
-                                        <Calendar className="w-4 h-4 mr-2 text-gray-500" />
-                                        {task.date}
-                                    </div>
                                 </div>
-                                <div className="flex justify-end">
-                                    {task.status === 'pending' && (
-                                        <Button onClick={() => handleStatusChange(task.id, 'in_progress')} variant="outline" size="sm">
-                                            Start Collection
-                                        </Button>
-                                    )}
-                                    {task.status === 'in_progress' && task.collectorId === user?.id && (
-                                        <Button onClick={() => setSelectedTask(task)} variant="outline" size="sm">
-                                            Submit and Verify ✔️
-                                        </Button>
-                                    )}
-                                    {task.status === 'in_progress' && task.collectorId !== user?.id && (
-                                        <span className="text-yellow-600 text-sm font-medium">In progress by another collector</span>
-                                    )}
-                                    {task.status === 'verified' && (
-                                        <span className="text-green-600 text-sm font-medium">Reward Earned</span>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="mt-4 flex justify-center">
-                        <Button
-                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                            disabled={currentPage === 1}
-                            className="mr-2"
-                        >
-                            Previous
-                        </Button>
-                        <span className="mx-2 self-center">
-                            Page {currentPage} of {pageCount}
-                        </span>
-                        <Button
-                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, pageCount))}
-                            disabled={currentPage === pageCount}
-                            className="ml-2"
-                        >
-                            Next
-                        </Button>
-                    </div>
-                </>
-            )}
-
-            {selectedTask && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto ">
-                        <h3 className="text-xl font-semibold mb-4">Confirm Waste Collection ✅ </h3>
-                        <p className="mb-4 text-sm text-gray-600">📸 Provide a photo of the collected waste to complete verification and receive your reward 🎉</p>
-                        <div className="mb-4">
-                            <label htmlFor="verification-image" className="block text-sm font-medium text-gray-700 mb-2">
-                                Upload Image ⬆️
-                            </label>
-                            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                                <div className="space-y-1 text-center">
-                                    <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                                    <div className="flex text-sm text-gray-600">
-                                        <label
-                                            htmlFor="verification-image"
-                                            className="relative cursor-pointer bg-white rounded-md font-medium text-emerald-600 hover:text-emerald-800 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
-                                        >
-                                            <span>Click to upload a cleanup photo 📸</span>
-                                            <input id="verification-image" name="verification-image" type="file" className="sr-only" onChange={handleImageUpload} accept="image/*" />
-                                        </label>
-                                    </div>
-                                    <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
-                                </div>
-                            </div>
+                            ))}
                         </div>
-                        {verificationImage && (
-                            <img src={verificationImage} alt="Verification" className="mb-4 rounded-md w-full" />
-                        )}
-                        <Button
-                            onClick={handleVerify}
-                            className="w-full bg-green-600 hover:bg-green-700"
-                            disabled={!verificationImage || verificationStatus === 'verifying'}
-                        >
-                            {verificationStatus === 'verifying' ? (
-                                <>
-                                    <Loader className="animate-spin -ml-1 mr-3 h-5 w-5 " />
-                                    Verifying...
-                                </>
-                            ) : 'Verify Collection ✅'}
-                        </Button>
-                        {verificationStatus === 'success' && verificationResult && (
-                            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-md ">
-                                <p>Waste Type Match: {verificationResult.wasteTypeMatch ? 'Yes' : 'No'}</p>
-                                <p>Quantity Match: {verificationResult.quantityMatch ? 'Yes' : 'No'}</p>
-                                <p>Confidence: {(verificationResult.confidence * 100).toFixed(2)}%</p>
-                            </div>
-                        )}
-                        {verificationStatus === 'failure' && (
-                            <p className="mt-2 text-red-600 text-center text-sm">Verification failed. Please try again.</p>
-                        )}
-                        <Button onClick={() => setSelectedTask(null)} variant="outline" className="w-full mt-2">
-                            Close ❌
-                        </Button>
-                    </div>
-                </div>
-            )}
-            <div className="flex justify-end">
-                {user ? (
-                    <p className="text-sm text-gray-600 mb-4 pt-4 italic text-right"style={{ fontFamily: 'Times New Roman' }}>Logged in as: {user.name}</p>
-                ) : (
-                    <p className="text-sm text-red-600 mb-4 italic text-right">Please log in to collect waste and earn rewards.</p>
+
+                        <div className="mt-6 flex justify-center items-center space-x-4">
+                            <Button
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                                className="bg-white border border-green-600 text-green-600 hover:bg-green-100 py-2 px-4 rounded-xl transition-colors duration-300"
+                            >
+                                Previous
+                            </Button>
+                            <span className="text-sm text-gray-700">
+                                Page {currentPage} of {pageCount}
+                            </span>
+                            <Button
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, pageCount))}
+                                disabled={currentPage === pageCount}
+                                className="bg-white border border-green-600 text-green-600 hover:bg-green-100 py-2 px-4 rounded-xl transition-colors duration-300"
+                            >
+                                Next
+                            </Button>
+                        </div>
+                    </>
                 )}
+
+                {selectedTask && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                        <div className="bg-white rounded-2xl p-6 md:p-8 shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                            <h3 className="text-2xl font-bold mb-4 text-gray-800">Confirm Waste Collection ✅</h3>
+                            <p className="mb-4 text-sm text-gray-600">📸 Provide a photo of the collected waste to complete verification and receive your reward 🎉</p>
+                            
+                            <div className="mb-4">
+                                <label htmlFor="verification-image" className="block text-xl text-gray-700 mb-2 font-bold">
+                                    Upload Image ⬆️
+                                </label>
+                                <div className="mt-1 flex justify-center px-4 py-6 border-2 border-green-300 border-dashed rounded-xl hover:border-green-500 transition-colors duration-300">
+                                    <div className="space-y-1 text-center">
+                                        <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                                        <div className="flex flex-col sm:flex-row justify-center text-sm text-gray-600">
+                                            <label
+                                                htmlFor="verification-image"
+                                                className="relative cursor-pointer bg-white rounded-md font-medium text-green-600 hover:text-green-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-green-500"
+                                            >
+                                                <span>Click to upload a cleanup photo 📸</span>
+                                                <input id="verification-image" name="verification-image" type="file" className="sr-only" onChange={handleImageUpload} accept="image/*" />
+                                            </label>
+                                            <span className="sm:ml-2 mt-1 sm:mt-0">or drag and drop</span>
+                                        </div>
+                                        <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {verificationImage && (
+                                <img src={verificationImage} alt="Verification" className="mb-4 rounded-md w-full shadow-md" />
+                            )}
+                            
+                            <Button
+                                onClick={handleVerify}
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-bold rounded-xl transition-colors duration-300 flex items-center justify-center"
+                                disabled={!verificationImage || verificationStatus === 'verifying'}
+                            >
+                                {verificationStatus === 'verifying' ? (
+                                    <>
+                                        <Loader className="animate-spin -ml-1 mr-3 h-5 w-5 " />
+                                        Verifying...
+                                    </>
+                                ) : 'Verify Collection ✅'}
+                            </Button>
+                            
+                            {verificationStatus === 'success' && verificationResult && (
+                                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-md shadow-inner">
+                                    <p>Waste Type Match: {verificationResult.wasteTypeMatch ? 'Yes' : 'No'}</p>
+                                    <p>Quantity Match: {verificationResult.quantityMatch ? 'Yes' : 'No'}</p>
+                                    <p>Confidence: {(verificationResult.confidence * 100).toFixed(2)}%</p>
+                                </div>
+                            )}
+                            
+                            {verificationStatus === 'failure' && (
+                                <p className="mt-2 text-red-600 text-center text-sm">Verification failed. Please try again.</p>
+                            )}
+                            
+                            <Button onClick={() => setSelectedTask(null)} variant="outline" className="w-full mt-2 bg-white border border-red-600 text-red-600 hover:bg-red-50">
+                                Close ❌
+                            </Button>
+                        </div>
+                    </div>
+                )}
+                
+                <div className="flex justify-end">
+                    {user ? (
+                        <p className="text-sm text-gray-600 mb-4 pt-4 italic text-right font-serif">
+                            Logged in as: {user.name}
+                        </p>
+                    ) : (
+                        <p className="text-sm text-red-600 mb-4 italic text-right font-serif">
+                            Please log in to collect waste and earn rewards.
+                        </p>
+                    )}
+                </div>
             </div>
         </div>
     )
