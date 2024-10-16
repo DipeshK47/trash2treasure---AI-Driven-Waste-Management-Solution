@@ -21,7 +21,12 @@ function AnimatedGlobe() {
       <div className="absolute inset-2 rounded-full bg-green-400 opacity-40 animate-ping"></div>
       <div className="absolute inset-4 rounded-full bg-green-300 opacity-60 animate-spin"></div>
       <div className="absolute inset-6 rounded-full bg-green-200 opacity-80 animate-bounce"></div>
-      <Leaf className="absolute inset-0 m-auto h-16 w-16 text-green-600 animate-pulse" />
+      {/* <Leaf className="absolute inset-0 m-auto h-16 w-16 text-green-600 animate-pulse" /> */}
+      <img
+                  src="NEWa8ed58c411b49e588c7e780a4392fa0f04e183187a881092414e8108d36d0471.webp_copy-removebg-preview.png"
+                  alt="Logo"
+                  className="absolute inset-0 m-auto h-26 w-24 pr-2"
+                />
     </div>
   )
 }
@@ -77,29 +82,14 @@ export default function Home() {
   return (
     <div
       className={`container mx-auto px-4 py-16 ${poppins.className}`}
-      // style={{ fontFamily: "'Times New Roman', Times, serif" }}
       style={{ fontFamily: "'Arial', sans-serif" }} // Inline font styling
-      // style={{ fontFamily: "'Helvetica', sans-serif" }}
-      // style={{ fontFamily: "'Pacifico', cursive" }}
-      // style={{ fontFamily: "'Dancing Script', cursive" }}
-      // style={{ fontFamily: "'Protest Strike', cursive" }}
-      // style={{ fontFamily: "'Lobster', cursive" }}
-      // style={{ fontFamily: "'Courier New', monospace" }}
-      // style={{ fontFamily: "'Consolas', monospace" }}
-      // style={{ fontFamily: "'Indie Flower', cursive" }}
-      // style={{ fontFamily: "'Patrick Hand', cursive" }}
-      // style={{ fontFamily: "'Old English Text MT', serif" }}
-      // style={{ fontFamily: "'Didot', serif" }}
-      // style={{ fontFamily: "'Bodoni', serif" }}
-
-
     > 
       <section className="text-center mb-20">
         <AnimatedGlobe />
-        <h1 className="text-7xl font-bold mb-6 text-gray-800 tracking-tight"> {/* Increased font size */}
-          Trash Today, <span className="text-green-600">Treasure Tomorrow</span>
+        <h1 className="text-5xl font-serif font-bold mb-6 text-gray-800 tracking-tight"> {/* Increased font size */}
+          Today Trash's, <span className="text-green-600">Tomorrow's Treasure</span>
         </h1>
-        <p className="text-2xl text-gray-600 max-w-2xl mx-auto leading-relaxed mb-8"> {/* Increased font size */}
+        <p className="text-xl font-serif italic text-gray-600 max-w-2xl mx-auto leading-relaxed mb-8"> {/* Increased font size */}
           Join us to turn <span className="font-bold text-gray-600 tracking-tight">Trash</span> into{' '}
           <span className="font-bold text-green-600">Treasure</span> and earn rewards for a greener tomorrow🌿!
         </p>
