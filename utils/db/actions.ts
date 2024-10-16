@@ -67,11 +67,14 @@ export async function getRewardTransactions(userId: number) {
     }
 }
 
-export async function markNotificationAsRead(notificationId: number) {
+export async function markAllNotificationsAsRead(userId: number) {
     try {
-        await db.update(Notifications).set({ isRead: true }).where(eq(Notifications.id, notificationId)).execute()
+        await db.update(Notifications)
+            .set({ isRead: true })
+            .where(eq(Notifications.userId, userId))
+            .execute()
     } catch (error) {
-        console.log('Error marking notif ad read', error)
+        console.error('Error marking all notifications as read', error)
         return null
     }
 }
