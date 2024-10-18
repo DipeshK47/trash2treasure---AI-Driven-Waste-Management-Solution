@@ -429,7 +429,7 @@ function UserMenu({ userInfo, balance, onLogout }: UserMenuProps) {
     <div className="flex items-center bg-gray-100 rounded-full px-4 py-1">
       <Coins className="h-4 w-4 md:h-5 md:w-5 mr-1 text-emerald-500" />
       <span className="font-semibold text-sm md:text-base text-gray-700">
-        {balance.toFixed(2)}
+        {balance.toFixed(1)}
       </span>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

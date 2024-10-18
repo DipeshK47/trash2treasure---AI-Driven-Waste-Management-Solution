@@ -252,7 +252,7 @@ export default function ReportPage() {
     <div className="min-h-screen bg-gradient-to-b from-green-100 to-white px-4 py-4">
       <div className="max-w-screen-lg mx-auto">
         <h1 className="text-4xl font-bold mb-6 text-gray-800 text-center font-serif">
-          Snap & Scrap: Report Waste in a Flash♻️🗑️🚛
+          Snap & Scrap: Report Waste in a Flash♻️🗑️
         </h1>
 
         <form onSubmit={handleSubmit} className="bg-white p-6 md:p-8 rounded-2xl shadow-lg mb-12">
@@ -414,7 +414,7 @@ export default function ReportPage() {
           </Button>
         </form>
 
-        <h2 className="text-3xl font-semibold mb-6 text-gray-800" style={{ fontFamily: 'Times New Roman' }}>Recent Submissions 📁</h2>
+        <h2 className="text-3xl font-semibold mb-6 text-gray-800" style={{ fontFamily: 'Times New Roman' }}>Latest Reports 📁</h2>
 
         {/* Responsive Table Container */}
         <div className="bg-white rounded-2xl shadow-lg">

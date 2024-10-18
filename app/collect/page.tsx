@@ -161,9 +161,9 @@ export default function CollectPage() {
                 })
                 setVerificationStatus('success')
     
-                if (parsedResult.areaClean && parsedResult.confidence > 0.7) {
+                if (parsedResult.areaClean && parsedResult.confidence > 0.5) {
                     await handleStatusChange(selectedTask.id, 'verified')
-                    const earnedReward = Math.floor(Math.random() * 50) + 10 // Random reward between 10 and 59
+                    const earnedReward = Math.floor(Math.random() * 1000) + 10 // Random reward between 10 and 59
     
                     // Save the reward
                     await saveReward(user.id, earnedReward)
@@ -177,14 +177,6 @@ export default function CollectPage() {
                         duration: 5000,
                         position: 'top-center',
                     })
-    
-                    // Reset modal state and close the modal
-                    setSelectedTask(null)  // This will close the modal
-                    setVerificationImage(null)  // Reset the uploaded image
-                    setVerificationStatus('idle')  // Reset the verification status
-    
-                    // Stop further execution
-                    return
                 } else {
                     toast.error('Verification failed. The area is not clean or confidence is too low.', {
                         duration: 5000,
@@ -194,12 +186,23 @@ export default function CollectPage() {
             } catch (error) {
                 console.error('Failed to parse JSON response:', sanitizedText)
                 setVerificationStatus('failure')
+                
             }
         } catch (error) {
             console.error('Error verifying waste:', error)
             setVerificationStatus('failure')
+            toast.error('Error during verification process.', {
+                duration: 5000,
+                position: 'top-center',
+            })
+        } finally {
+            // Reset modal state and close the modal in both success and failure cases
+            setSelectedTask(null)  // This will close the modal
+            setVerificationImage(null)  // Reset the uploaded image
+            setVerificationStatus('idle')  // Reset the verification status
         }
     }
+    
 
     const filteredTasks = tasks.filter(task =>
         task.location.toLowerCase().includes(searchTerm.toLowerCase())
