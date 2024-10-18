@@ -285,31 +285,22 @@ export async function markAllNotificationsAsRead(userId: number) {
 // Save a reward for a user (this is for collecting waste)
 export async function saveReward(userId: number, amount: number) {
     try {
-        // Insert the reward into the database
-        const [reward] = await db
-            .insert(Rewards)
-            .values({
-                userId,
-                name: 'Waste Collection Reward',
-                collectionInfo: 'Points earned from waste collection',
-                points: amount, // Add the reward points
-                level: 1,
-                isAvailable: true,
-            })
-            .returning()
-            .execute();
-      
-        // Create a transaction for the earned points
-        await createTransaction(userId, 'earned_collect', amount, 'Points earned for collecting waste');
-  
+        const [reward] = await db.insert(Rewards).values({
+            userId,
+            name: 'Waste Collection Reward',
+            collectionInfo: 'Points earned from waste collection',
+            points: amount,
+            isAvailable: true,
+        }).returning().execute();
+
+        await createTransaction(userId, 'earned_collect', amount, 'Points earned from collecting waste.');
         return reward;
     } catch (error) {
-        console.error("Error saving reward:", error);
-        throw error;
+        console.error('Error saving rewards', error);
+        return null;
     }
 }
 
-// Save collected waste details
 export async function saveCollectedWaste(reportId: number, collectorId: number, verificationResult: any) {
     try {
         const [collectedWaste] = await db.insert(CollectedWastes).values({
@@ -325,6 +316,7 @@ export async function saveCollectedWaste(reportId: number, collectorId: number, 
     }
 }
 
+// Fetch waste collection tasks
 // Fetch waste collection tasks
 export async function getWasteCollectionTasks(limit: number = 20) {
     try {
@@ -347,6 +339,7 @@ export async function getWasteCollectionTasks(limit: number = 20) {
         return [];
     }
 }
+
 
 // Update the status of a task
 export async function updateTaskStatus(reportId: number, newStatus: string, collectorId?: number) {

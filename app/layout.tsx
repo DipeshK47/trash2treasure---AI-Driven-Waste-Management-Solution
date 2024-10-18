@@ -20,20 +20,20 @@ export default function RootLayout({ children } : Readonly<{
   useEffect(()=>{
     const fetchTotalEarnings = async()=>{
       try {
-        const userEmail = localStorage.getItem('userEmail')
-        if(userEmail) {
+        const userEmail = localStorage.getItem('userEmail');
+        if (userEmail) {
           const user = await getUserByEmail(userEmail);
-          if(user){
+          if (user) {
             const availableRewards = await getAvaliableRewards(user.id) as any; 
-            setTotalEarnings(availableRewards)
+            setTotalEarnings(availableRewards);
           }
         }
       } catch (e) {
-        console.log('Error fetching total earnings', e)
+        console.log('Error fetching total earnings', e);
       }
     };
     fetchTotalEarnings();
-  },[])
+  },[]);
 
   return (
     <html lang="en">
@@ -42,19 +42,15 @@ export default function RootLayout({ children } : Readonly<{
           {/* Header */}
           <Header
             onMenuClick={() => setSidebarOpen(!sidebarOpen)} 
-            totalEarnings={0}
+            totalEarnings={totalEarnings}
             showMenuButton={true} // Pass a prop to control button visibility
           />
           <div className="flex flex-1">
             {/* Sidebar */}
-<<<<<<< HEAD
             <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
-=======
-            <Sidebar open={sidebarOpen} />
->>>>>>> e2e2799a9fe2a1403f5b05302eb86cacc1226b0a
             <main className="flex-1 p-0 lg:p-0 ml-0 lg:ml-[14rem] transition-all duration-300">
-  {children}
-</main>
+              {children}
+            </main>
           </div>
         </div>
         <Toaster />

@@ -161,9 +161,9 @@ export default function CollectPage() {
                 })
                 setVerificationStatus('success')
     
-                if (parsedResult.areaClean && parsedResult.confidence > 0.5) {
+                if (parsedResult.areaClean && parsedResult.confidence > 0.7) {
                     await handleStatusChange(selectedTask.id, 'verified')
-                    const earnedReward = Math.floor(Math.random() * 1000) + 10 // Random reward between 10 and 59
+                    const earnedReward = Math.floor(Math.random() * 50) + 10 // Random reward between 10 and 59
     
                     // Save the reward
                     await saveReward(user.id, earnedReward)
@@ -177,6 +177,14 @@ export default function CollectPage() {
                         duration: 5000,
                         position: 'top-center',
                     })
+    
+                    // Reset modal state and close the modal
+                    setSelectedTask(null)  // This will close the modal
+                    setVerificationImage(null)  // Reset the uploaded image
+                    setVerificationStatus('idle')  // Reset the verification status
+    
+                    // Stop further execution
+                    return
                 } else {
                     toast.error('Verification failed. The area is not clean or confidence is too low.', {
                         duration: 5000,
@@ -186,23 +194,12 @@ export default function CollectPage() {
             } catch (error) {
                 console.error('Failed to parse JSON response:', sanitizedText)
                 setVerificationStatus('failure')
-                
             }
         } catch (error) {
             console.error('Error verifying waste:', error)
             setVerificationStatus('failure')
-            toast.error('Error during verification process.', {
-                duration: 5000,
-                position: 'top-center',
-            })
-        } finally {
-            // Reset modal state and close the modal in both success and failure cases
-            setSelectedTask(null)  // This will close the modal
-            setVerificationImage(null)  // Reset the uploaded image
-            setVerificationStatus('idle')  // Reset the verification status
         }
     }
-    
 
     const filteredTasks = tasks.filter(task =>
         task.location.toLowerCase().includes(searchTerm.toLowerCase())
@@ -333,7 +330,7 @@ export default function CollectPage() {
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                         <div className="bg-white rounded-2xl p-6 md:p-8 shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                             <h3 className="text-2xl font-bold mb-4 text-gray-800">Confirm Waste Collection ✅</h3>
-                            <p className="mb-4 text-sm text-gray-600">📸 Provide a photo of the collected waste to complete verification and receive your reward 🎉</p>
+                            <p className="mb-4 text-sm text-gray-600">📸 Provide a photo of the collected waste to complete verification and receive your reward!</p>
                             
                             <div className="mb-4">
                                 <label htmlFor="verification-image" className="block text-xl text-gray-700 mb-2 font-bold">
@@ -363,7 +360,7 @@ export default function CollectPage() {
                             
                             <Button
                                 onClick={handleVerify}
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-bold rounded-xl transition-colors duration-300 flex items-center justify-center"
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-serif font-bold rounded-xl transition-colors duration-300 flex items-center justify-center"
                                 disabled={!verificationImage || verificationStatus === 'verifying'}
                             >
                                 {verificationStatus === 'verifying' ? (
