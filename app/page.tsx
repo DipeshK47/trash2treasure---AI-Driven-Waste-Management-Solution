@@ -1,9 +1,18 @@
+<<<<<<< HEAD
 'use client'
 import { useState, useEffect } from 'react'
 import { ArrowRight, Leaf, Recycle, Coins, Users, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { getRecentReports, getAllRewards, getWasteCollectionTasks } from '@/utils/db/actions'
+=======
+'use client';
+import { useState, useEffect } from 'react';
+import { ArrowRight, Leaf, Recycle, Users, Coins, MapPin } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { getRecentReports, getAllRewards, getWasteCollectionTasks } from '@/utils/db/actions';
+>>>>>>> e2e2799a9fe2a1403f5b05302eb86cacc1226b0a
 
 function AnimatedGlobe() {
   return (
@@ -26,6 +35,10 @@ export default function Home() {
   const [impactData, setImpactData] = useState({
     wasteCollected: 0,
     reportsSubmitted: 0,
+<<<<<<< HEAD
+=======
+    tokensEarned: 0,
+>>>>>>> e2e2799a9fe2a1403f5b05302eb86cacc1226b0a
     co2Offset: 0,
   });
 
@@ -33,6 +46,10 @@ export default function Home() {
     async function fetchImpactData() {
       try {
         const reports = await getRecentReports(100);
+<<<<<<< HEAD
+=======
+        const rewards = await getAllRewards();
+>>>>>>> e2e2799a9fe2a1403f5b05302eb86cacc1226b0a
         const tasks = await getWasteCollectionTasks(100);
 
         const wasteCollected = tasks.reduce((total, task) => {
@@ -42,11 +59,19 @@ export default function Home() {
         }, 0);
 
         const reportsSubmitted = reports.length;
+<<<<<<< HEAD
+=======
+        const tokensEarned = rewards.reduce((total, reward) => total + (reward.points || 0), 0);
+>>>>>>> e2e2799a9fe2a1403f5b05302eb86cacc1226b0a
         const co2Offset = wasteCollected * 0.5;
 
         setImpactData({
           wasteCollected: Math.round(wasteCollected * 10) / 10,
           reportsSubmitted,
+<<<<<<< HEAD
+=======
+          tokensEarned,
+>>>>>>> e2e2799a9fe2a1403f5b05302eb86cacc1226b0a
           co2Offset: Math.round(co2Offset * 10) / 10,
         });
       } catch (error) {
@@ -54,6 +79,10 @@ export default function Home() {
         setImpactData({
           wasteCollected: 0,
           reportsSubmitted: 0,
+<<<<<<< HEAD
+=======
+          tokensEarned: 0,
+>>>>>>> e2e2799a9fe2a1403f5b05302eb86cacc1226b0a
           co2Offset: 0,
         });
       }
@@ -132,6 +161,7 @@ export default function Home() {
 
         <section className="bg-gradient-to-b from-green-100 to-white p-12 rounded-3xl shadow-xl mb-20 font-serif">
           <h2 className="text-5xl font-bold mb-12 text-center text-gray-800 tracking-wide">Our Green Journey 🌿✨</h2>
+<<<<<<< HEAD
           <div className="flex justify-center">
             <div className="grid md:grid-cols-3 gap-12 max-w-7xl">
               <ImpactCard 
@@ -153,6 +183,33 @@ export default function Home() {
                 className="bg-gradient-to-r from-white to-green-50 p-12 rounded-xl shadow-lg border border-transparent transition-transform duration-300 ease-in-out hover:scale-110 hover:shadow-2xl"
               />
             </div>
+=======
+          <div className="grid md:grid-cols-4 gap-8">
+            <ImpactCard 
+              title="Waste Collected 🗑️" 
+              value={`${impactData.wasteCollected} kg`} 
+              icon={Recycle} 
+              className="bg-gradient-to-r from-white to-green-50 p-8 rounded-xl shadow-lg border border-transparent transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-2xl"
+            />
+            <ImpactCard 
+              title="Reports Submitted ✅" 
+              value={impactData.reportsSubmitted.toString()} 
+              icon={MapPin} 
+              className="bg-gradient-to-r from-white to-blue-50 p-8 rounded-xl shadow-lg border border-transparent transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-2xl"
+            />
+            <ImpactCard 
+              title="Tokens Earned 🎫" 
+              value={impactData.tokensEarned.toString()} 
+              icon={Coins} 
+              className="bg-gradient-to-r from-white to-yellow-50 p-8 rounded-xl shadow-lg border border-transparent transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-2xl"
+            />
+            <ImpactCard 
+              title="CO2 Offset ♻️" 
+              value={`${impactData.co2Offset} kg`} 
+              icon={Leaf} 
+              className="bg-gradient-to-r from-white to-green-50 p-8 rounded-xl shadow-lg border border-transparent transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-2xl"
+            />
+>>>>>>> e2e2799a9fe2a1403f5b05302eb86cacc1226b0a
           </div>
         </section>
       </div>
@@ -165,10 +222,17 @@ function ImpactCard({ title, value, icon: Icon }) {
     typeof value === 'number' ? value.toLocaleString('en-US', { maximumFractionDigits: 1 }) : value;
 
   return (
+<<<<<<< HEAD
     <div className="p-6 rounded-xl bg-gray-50 border border-gray-100 transition-all duration-300 ease-in-out hover:shadow-md text-center">
       <Icon className="h-12 w-12 text-green-500 mb-4" />
       <p className="text-4xl font-bold mb-2 text-gray-800">{formattedValue}</p>
       <p className="text-xl text-gray-600">{title}</p>
+=======
+    <div className="p-6 rounded-xl bg-gray-50 border border-gray-100 transition-all duration-300 ease-in-out hover:shadow-md">
+      <Icon className="h-10 w-10 text-green-500 mb-4" />
+      <p className="text-3xl font-bold mb-2 text-gray-800">{formattedValue}</p>
+      <p className="text-sm text-gray-600">{title}</p>
+>>>>>>> e2e2799a9fe2a1403f5b05302eb86cacc1226b0a
     </div>
   );
 }
@@ -183,4 +247,8 @@ function FeatureCard({ icon: Icon, title, description }) {
       <p className="text-xl text-gray-600 leading-relaxed">{description}</p>
     </div>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> e2e2799a9fe2a1403f5b05302eb86cacc1226b0a
