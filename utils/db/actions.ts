@@ -24,7 +24,18 @@ export async function getUserByEmail(email: string) {
     }
 }
 
-// Create a waste report
+export async function getUnreadNotifications(userId: number) {
+    try {
+        return await db
+            .select()
+            .from(Notifications)
+            .where(and(eq(Notifications.userId, userId), eq(Notifications.isRead, false)))
+            .execute();
+    } catch (error) {
+        console.error('Error fetching notifications', error);
+        return [];
+    }
+}
 // Create a waste report
 export async function createReport(
     userId: number,
@@ -39,11 +50,9 @@ export async function createReport(
             userId, location, wasteType, amount, imageUrl, verificationResult, status: 'pending'
         }).returning().execute();
 
-        // Points logic (add based on weight as we discussed)
-        const pointsEarned = 10; // You can adjust this logic based on weight if needed
+        const pointsEarned = 10;
         await updateRewardPoints(userId, pointsEarned);
 
-        // Log the transaction
         await createTransaction(userId, 'earned_report', pointsEarned, 'Points earned for reporting waste');
         await createNotifications(userId, `You've earned ${pointsEarned} points!!`, 'reward');
 
@@ -57,14 +66,13 @@ export async function createReport(
 // Fetch reports by user ID
 export async function getReportsByUserId(userId: number) {
     try {
-        const reports = await db.select().from(Reports).where(eq(Reports.userId, userId)).execute();
-        return reports;
+      const reports = await db.select().from(Reports).where(eq(Reports.userId, userId)).execute();
+      return reports;
     } catch (error) {
-        console.error("Error fetching reports:", error);
-        return [];
+      console.error("Error fetching reports:", error);
+      return [];
     }
-}
-
+  }
 // Fetch pending reports
 export async function getPendingReports() {
     try {
@@ -97,25 +105,19 @@ export async function getRecentReports(limit: number = 10) {
         const reports = await db.select().from(Reports).orderBy(desc(Reports.createdAt)).limit(limit).execute();
         return reports;
     } catch (error) {
-        console.error('Error fetching recent reports:', error);
+        console.error('Error fetching recent reports', error);
         return [];
     }
 }
 
-// Get user balance from reward transactions
-// Get user balance from reward transactions
 export async function getUserBalance(userId: number): Promise<number> {
     const transactions = await getRewardTransactions(userId) || [];
-    
-    // Calculate balance by summing up only earned points
     const balance = transactions.reduce((acc: number, transaction: any) => {
-        if (transaction.type.startsWith('earned')) {
-            return acc + transaction.amount; // Add only earned points
-        }
-        return acc; // Ignore deduction types (like 'redeemed')
+        return transaction.type.startsWith('earned')
+            ? acc + transaction.amount
+            : acc - transaction.amount;
     }, 0);
-
-    return balance;  // Return the total balance (no deductions)
+    return Math.max(balance, 0);  // Ensure balance is not negative
 }
 
 // Fetch reward transactions for a user
@@ -171,6 +173,7 @@ export async function getAvailableRewards(userId: number) {
         return [];
     }
 }
+
 export async function getOrCreateReward(userId: number) {
     try {
       let [reward] = await db.select().from(Rewards).where(eq(Rewards.userId, userId)).execute();
@@ -193,26 +196,25 @@ export async function getOrCreateReward(userId: number) {
 // Fetch all rewards
 export async function getAllRewards() {
     try {
-      const rewards = await db
-        .select({
-          id: Rewards.id,
-          userId: Rewards.userId,
-          points: Rewards.points,
-          level: Rewards.level,
-          createdAt: Rewards.createdAt,
-          userName: Users.name,
-        })
-        .from(Rewards)
-        .leftJoin(Users, eq(Rewards.userId, Users.id))
-        .orderBy(desc(Rewards.points))
-        .execute();
-  
-      return rewards;
+        const rewards = await db
+            .select({
+                id: Rewards.id,
+                userId: Rewards.userId,
+                points: Rewards.points,
+                createdAt: Rewards.createdAt, // Removed `level`
+                userName: Users.name,
+            })
+            .from(Rewards)
+            .leftJoin(Users, eq(Rewards.userId, Users.id))
+            .orderBy(desc(Rewards.points))
+            .execute();
+
+        return rewards;
     } catch (error) {
-      console.error("Error fetching all rewards:", error);
-      return [];
+        console.error("Error fetching all rewards:", error);
+        return [];
     }
-  }
+}
 
 // Update user reward points
 export async function updateRewardPoints(userId: number, pointsToAdd: number) {
@@ -226,6 +228,7 @@ export async function updateRewardPoints(userId: number, pointsToAdd: number) {
         return null;
     }
 }
+  
 
 // Create a transaction for a user
 // Create a transaction for a user
@@ -254,21 +257,7 @@ export async function createNotifications(userId: number, message: string, type:
     }
 }
 
-// Fetch unread notifications
-export async function getUnreadNotifications(userId: number) {
-    try {
-        return await db
-            .select()
-            .from(Notifications)
-            .where(and(eq(Notifications.userId, userId), eq(Notifications.isRead, false)))
-            .execute();
-    } catch (error) {
-        console.error('Error fetching notifications', error);
-        return [];
-    }
-}
-
-// Mark all notifications as read for a user
+// Mark all notifications as read for a usermarkAllNotificationsAsRead
 export async function markAllNotificationsAsRead(userId: number) {
     try {
         await db.update(Notifications)
@@ -315,6 +304,7 @@ export async function saveCollectedWaste(reportId: number, collectorId: number, 
         return null;
     }
 }
+
 
 // Fetch waste collection tasks
 // Fetch waste collection tasks

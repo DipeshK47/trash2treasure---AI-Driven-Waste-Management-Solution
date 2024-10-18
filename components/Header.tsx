@@ -21,7 +21,6 @@ import {
   getUserByEmail, 
   getUnreadNotifications, 
   getUserBalance, 
-  markNotificationAsRead,
   markAllNotificationsAsRead 
 } from '@/utils/db/actions';
 import { 

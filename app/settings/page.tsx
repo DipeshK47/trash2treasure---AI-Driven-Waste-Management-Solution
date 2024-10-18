@@ -13,10 +13,10 @@ type UserSettings = {
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<UserSettings>({
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    phone: '+1 234 567 8900',
-    address: '123 Eco Street, Green City, 12345',
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
     notifications: true,
   })
 
@@ -37,7 +37,7 @@ export default function SettingsPage() {
 
   return (
     <div className="p-8 max-w-2xl mx-auto">
-      <h1 className="text-3xl font-semibold mb-6 text-gray-800">Account Settings</h1>
+      <h1 className="text-3xl font-semibold mb-6 font-serif text-gray-800">Account Settings</h1>
       
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
@@ -49,6 +49,7 @@ export default function SettingsPage() {
               name="name"
               value={settings.name}
               onChange={handleInputChange}
+              placeholder="John Doe"
               className="pl-10 w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
             />
             <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
@@ -64,6 +65,7 @@ export default function SettingsPage() {
               name="email"
               value={settings.email}
               onChange={handleInputChange}
+              placeholder="john.doe@example.com"
               className="pl-10 w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
             />
             <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
@@ -79,6 +81,7 @@ export default function SettingsPage() {
               name="phone"
               value={settings.phone}
               onChange={handleInputChange}
+              placeholder="+1 234 567 8900"
               className="pl-10 w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
             />
             <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
@@ -94,6 +97,7 @@ export default function SettingsPage() {
               name="address"
               value={settings.address}
               onChange={handleInputChange}
+              placeholder="123 Eco Street, Green City, 12345"
               className="pl-10 w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
             />
             <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />

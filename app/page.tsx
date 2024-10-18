@@ -7,7 +7,7 @@ import { getRecentReports, getAllRewards, getWasteCollectionTasks } from '@/util
 
 function AnimatedGlobe() {
   return (
-    <div className="relative w-36 h-36 mx-auto mb-6">
+    <div className="relative w-36 h-36 md:w-60 md:h-60 mx-auto mb-6">
       <div className="absolute inset-0 rounded-full bg-green-500 opacity-20 animate-pulse"></div>
       <div className="absolute inset-2 rounded-full bg-green-400 opacity-40 animate-ping"></div>
       <div className="absolute inset-4 rounded-full bg-green-300 opacity-60 animate-spin"></div>
@@ -15,7 +15,7 @@ function AnimatedGlobe() {
       <img
         src="NEWa8ed58c411b49e588c7e780a4392fa0f04e183187a881092414e8108d36d0471.webp_copy-removebg-preview.png"
         alt="Logo"
-        className="absolute inset-0 m-auto h-26 w-24 pr-2"
+        className="absolute inset-0 m-auto p-1 pr-3 max-w-[85%] max-h-[85%] object-contain"
       />
     </div>
   );
@@ -70,7 +70,7 @@ export default function Home() {
   const login = () => setLoggedIn(true);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-100 to-white -mt-8">
+    <div className="min-h-screen bg-gradient-to-b from-green-100 to-white px-4 -mt-8">
       <style jsx>{`
         @keyframes shake {
           0%, 100% {
@@ -89,13 +89,13 @@ export default function Home() {
         }
       `}</style>
 
-      <div className="container mx-auto px-4 py-16 flex flex-col items-center">
+      <div className="container mx-auto px-4 py-14 flex flex-col items-center">
         <section className="text-center mb-20">
           <AnimatedGlobe />
-          <h1 className="text-5xl font-serif font-bold mb-6 text-gray-800 tracking-tight">
+          <h1 className="text-5xl md:text-8xl font-serif font-bold mb-6 text-gray-800 tracking-tight">
             Today Trash's, <span className="text-green-600">Tomorrow's Treasure</span>
           </h1>
-          <p className="text-xl font-serif italic text-gray-600 max-w-2xl mx-auto leading-relaxed mb-8">
+          <p className="text-xl md:text-xl font-serif italic text-gray-600 max-w-2xl mx-auto leading-relaxed mb-8">
             Join us in transforming <span className="font-bold text-gray-600 tracking-tight">Trash</span> into{' '}
             <span className="font-bold text-green-600">Treasure</span> and earn rewards while contributing to a greener future! 🌿
           </p>
@@ -135,31 +135,38 @@ export default function Home() {
           />
         </section>
 
-        <section className="bg-gradient-to-b from-green-100 to-white p-12 rounded-3xl shadow-xl mb-20 font-serif">
-  <h2 className="text-5xl font-bold mb-12 text-center text-gray-800 tracking-wide">Our Green Journey 🌿✨</h2>
-  
-  {/* Center the cards by using grid with three columns and larger gap */}
-  <div className="grid md:grid-cols-3 gap-12 justify-center">
-    <ImpactCard 
-      title="Waste Collected 🗑️" 
-      value={`${impactData.wasteCollected} kg`} 
-      icon={Recycle} 
-      className="bg-gradient-to-r from-white to-green-50 p-12 rounded-2xl shadow-lg border border-transparent transition-transform duration-300 ease-in-out hover:scale-110 hover:shadow-2xl"
-    />
-    <ImpactCard 
-      title="Reports Submitted ✅" 
-      value={impactData.reportsSubmitted.toString()} 
-      icon={MapPin} 
-      className="bg-gradient-to-r from-white to-blue-50 p-12 rounded-2xl shadow-lg border border-transparent transition-transform duration-300 ease-in-out hover:scale-110 hover:shadow-2xl"
-    />
-    <ImpactCard 
-      title="CO2 Offset ♻️" 
-      value={`${impactData.co2Offset} kg`} 
-      icon={Leaf} 
-      className="bg-gradient-to-r from-white to-green-50 p-12 rounded-2xl shadow-lg border border-transparent transition-transform duration-300 ease-in-out hover:scale-110 hover:shadow-2xl"
-    />
-  </div>
-</section>
+
+        <section className="container mx-auto px-6 md:px-12 py-12 bg-gradient-to-b from-green-100 to-white rounded-2xl shadow-2xl mb-24 font-serif">
+          <h2 className="text-6xl md:text-7xl font-bold mb-8 text-center text-gray-800 tracking-tight leading-snug">
+            Our Green Journey 🌿✨
+          </h2>
+
+          <p className="text-lg md:text-xl text-center font-serif italic text-gray-600 max-w-3xl mx-auto mb-14 leading-relaxed">
+            Together, we are making a significant impact on the environment. From collecting waste to offsetting CO2, every step counts in creating a cleaner, greener future. Explore the milestones we've achieved so far!
+          </p>
+
+          {/* Cards are evenly sized with matching heights and widths */}
+          <div className="grid md:grid-cols-3 gap-10 justify-center">
+            <ImpactCard
+              title="Waste Collected 🗑️"
+              value={`${impactData.wasteCollected} kg`}
+              icon={Recycle}
+              className="bg-white p-12 md:p-14 rounded-3xl shadow-lg border border-gray-200"
+            />
+            <ImpactCard
+              title="Reports Submitted ✅"
+              value={impactData.reportsSubmitted.toString()}
+              icon={MapPin}
+              className="bg-white p-12 md:p-14 rounded-3xl shadow-lg border border-gray-200"
+            />
+            <ImpactCard
+              title="CO2 Offset ♻️"
+              value={`${impactData.co2Offset} kg`}
+              icon={Leaf}
+              className="bg-white p-12 md:p-14 rounded-3xl shadow-lg border border-gray-200"
+            />
+          </div>
+        </section>
       </div>
     </div>
   );
@@ -170,10 +177,10 @@ function ImpactCard({ title, value, icon: Icon }) {
     typeof value === 'number' ? value.toLocaleString('en-US', { maximumFractionDigits: 1 }) : value;
 
   return (
-    <div className="p-6 rounded-xl bg-gray-50 border border-gray-100 transition-all duration-300 ease-in-out hover:shadow-md">
+    <div className="p-6 rounded-xl bg-gray-50 border border-gray-100 shadow-xl"> {/* Permanent shadow added */}
       <Icon className="h-10 w-10 text-green-500 mb-4" />
-      <p className="text-3xl font-bold mb-2 text-gray-800">{formattedValue}</p>
-      <p className="text-sm text-gray-600">{title}</p>
+      <p className="text-5xl font-bold mb-2 text-gray-800">{formattedValue}</p>
+      <p className="text-xl text-gray-600">{title}</p>
     </div>
   );
 }

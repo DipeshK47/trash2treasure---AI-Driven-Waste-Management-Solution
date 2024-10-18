@@ -8,7 +8,6 @@ type Reward = {
   id: number
   userId: number
   points: number
-  level: number
   createdAt: Date
   userName: string | null
 }
@@ -62,7 +61,8 @@ export default function LeaderboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-100 to-white p-8">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-semibold mb-6 text-gray-800 font-serif">Leaderboard 🔥</h1>
+        <h1 className="text-3xl font-semibold mb-3 text-gray-800 font-serif">Leaderboard 🔥</h1>
+        <p className="text-sm font-serif italic text-gray-600 mb-5">Keep track of the highest achievers and their successes.</p>
 
         {loading ? (
           <div className="flex justify-center items-center h-64">
@@ -73,7 +73,7 @@ export default function LeaderboardPage() {
             <div className="bg-gradient-to-r from-green-500 to-green-600 p-6">
               <div className="flex justify-between items-center text-white font-serif">
                 <Trophy className="h-10 w-10" />
-                <span className="text-2xl font-bold">Top Performers</span>
+                <span className="text-2xl font-serif font-bold">Leading Contributors</span>
                 <Award className="h-10 w-10" />
               </div>
             </div>
@@ -84,7 +84,6 @@ export default function LeaderboardPage() {
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Rank</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Points</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Level</th>
                   </tr>
                 </thead>
                 <tbody className="font-serif">
@@ -114,11 +113,6 @@ export default function LeaderboardPage() {
                           <Award className="h-5 w-5 text-indigo-500 mr-2" />
                           <div className="text-sm font-semibold text-gray-900">{reward.points.toLocaleString()}</div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">
-                          Level {reward.level}
-                        </span>
                       </td>
                     </tr>
                   ))}

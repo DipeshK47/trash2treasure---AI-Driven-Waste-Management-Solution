@@ -7,7 +7,7 @@ import './globals.css';
 import { Toaster } from 'react-hot-toast';
 import Header from '@/components/Header'; // Import your custom Header
 import Sidebar from '@/components/Sidebar'; // Import your custom Sidebar
-import { getAvaliableRewards, getUserByEmail } from '@/utils/db/actions';
+import { getUserByEmail } from '@/utils/db/actions';
 
 const inter = Inter({ subsets: ['latin'] });
 
