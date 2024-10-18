@@ -40,7 +40,6 @@ import {
 import { EthereumPrivateKeyProvider } from '@web3auth/ethereum-provider';
 import { useMediaQuery } from '@/hooks/userMediaQuery';
 
-// Ensure you have the WEB3_AUTH_CLIENT_ID set in your environment variables
 const clientId = process.env.NEXT_PUBLIC_WEB3_AUTH_CLIENT_ID || ''; // Updated to NEXT_PUBLIC for client-side
 
 const chainConfig = {
@@ -198,7 +197,6 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
 
   const handleNotificationClick = async (notificationId: number) => {
     await markNotificationAsRead(notificationId);
-    // Refresh notifications
     if (userInfo?.email) {
       const user = await getUserByEmail(userInfo.email);
       if (user) {
@@ -208,13 +206,11 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
     }
   };
 
-  // New function to handle marking all notifications as read
   const handleMarkAllAsRead = async () => {
     if (userInfo?.email) {
       const user = await getUserByEmail(userInfo.email);
       if (user) {
         await markAllNotificationsAsRead(user.id);
-        // Refresh notifications
         const unreadNotifications = await getUnreadNotifications(user.id);
         setNotifications(unreadNotifications);
       }
@@ -264,12 +260,6 @@ if (loading) {
             </div>
           )}
 
-          {!isSearchOpen && !isMobile && (
-            <div className="flex-1 max-w-xl mx-4">
-              <SearchBar />
-            </div>
-          )}
-
           {!isSearchOpen && (
             <div className="flex items-center space-x-3">
               <Button
@@ -295,56 +285,9 @@ if (loading) {
               )}
             </div>
           )}
-
-          {isSearchOpen && (
-            <div
-              className="absolute inset-0 bg-white dark:bg-gray-800 z-50 flex items-center px-4 animate-slide-up"
-              style={{ top: '2rem' }}
-            >
-              <SearchBar />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="ml-2"
-                onClick={() => setIsSearchOpen(false)}
-                aria-label="Close Search"
-              >
-                <X className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
-              </Button>
-            </div>
-          )}
         </div>
       </div>
     </header>
-  );
-}
-
-// SearchBar Component
-function SearchBar() {
-  return (
-    <div
-      className="relative w-full"
-      style={{
-        background: '#50C878',
-        padding: '1.5px',
-        borderRadius: '40px',
-        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.15)',
-      }}
-    >
-      <input
-        type="text"
-        placeholder="Search..."
-        className="w-full px-4 py-2 bg-white border-none rounded-full focus:outline-none focus:ring-2 focus:ring-green-400 placeholder:text-lg"
-        onFocus={(e) => {
-          e.target.parentNode.style.background =
-            'linear-gradient(90deg, #00FF7F, #00CC66, #009966)';
-        }}
-        onBlur={(e) => {
-          e.target.parentNode.style.background = '#006400';
-        }}
-      />
-      <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-    </div>
   );
 }
 
