@@ -29,9 +29,10 @@ export default function Home() {
     tokensEarned: 0,
     co2Offset: 0,
   });
-
+  const [loading, setLoading] = useState(true); // Loading state
   useEffect(() => {
     async function fetchImpactData() {
+      setLoading(true); // Start loading
       try {
         const reports = await getRecentReports(100);
         const rewards = await getAllRewards();
@@ -61,6 +62,8 @@ export default function Home() {
           tokensEarned: 0,
           co2Offset: 0,
         });
+      } finally {
+        setLoading(false); // End loading
       }
     }
 
@@ -137,36 +140,56 @@ export default function Home() {
 
 
         <section className="container mx-auto px-6 md:px-12 py-12 bg-gradient-to-b from-green-100 to-white rounded-2xl shadow-2xl mb-24 font-serif">
-          <h2 className="text-6xl md:text-7xl font-bold mb-8 text-center text-gray-800 tracking-tight leading-snug">
-            Our Green Journey 🌿✨
-          </h2>
+      <h2 className="text-6xl md:text-7xl font-bold mb-8 text-center text-gray-800 tracking-tight leading-snug">
+        Our Green Journey 🌿✨
+      </h2>
 
-          <p className="text-lg md:text-xl text-center font-serif italic text-gray-600 max-w-3xl mx-auto mb-14 leading-relaxed">
-            Together, we are making a significant impact on the environment. From collecting waste to offsetting CO2, every step counts in creating a cleaner, greener future. Explore the milestones we've achieved so far!
-          </p>
+      <p className="text-lg md:text-xl text-center font-serif italic text-gray-600 max-w-3xl mx-auto mb-14 leading-relaxed">
+        Together, we are making a significant impact on the environment. From collecting waste to offsetting CO2, every step counts in creating a cleaner, greener future. Explore the milestones we've achieved so far!
+      </p>
 
-          {/* Cards are evenly sized with matching heights and widths */}
-          <div className="grid md:grid-cols-3 gap-10 justify-center">
-            <ImpactCard
-              title="Waste Collected 🗑️"
-              value={`${impactData.wasteCollected} kg`}
-              icon={Recycle}
-              className="bg-white p-12 md:p-14 rounded-3xl shadow-lg border border-gray-200"
-            />
-            <ImpactCard
-              title="Reports Submitted ✅"
-              value={impactData.reportsSubmitted.toString()}
-              icon={MapPin}
-              className="bg-white p-12 md:p-14 rounded-3xl shadow-lg border border-gray-200"
-            />
-            <ImpactCard
-              title="CO2 Offset ♻️"
-              value={`${impactData.co2Offset} kg`}
-              icon={Leaf}
-              className="bg-white p-12 md:p-14 rounded-3xl shadow-lg border border-gray-200"
-            />
-          </div>
-        </section>
+      {/* Cards with custom loading text */}
+      <div className="grid md:grid-cols-3 gap-10 justify-center">
+      <ImpactCard
+  title="Waste Collected 🗑️"
+  value={loading ? (
+    <span style={{ fontSize: '0.675rem', fontWeight: 'normal' }}>
+      Tracking the total waste gathered<span className="ellipsis"></span> ♻️🗑️
+    </span>
+  ) : (
+    `${impactData.wasteCollected} kg`
+  )}
+  icon={Recycle}
+  className="bg-white p-12 md:p-14 rounded-3xl shadow-lg border border-gray-200"
+/>
+
+<ImpactCard
+  title="Reports Submitted ✅"
+  value={loading ? (
+    <span style={{ fontSize: '0.675rem', fontWeight: 'normal' }}>
+      Tallying up submitted reports<span className="ellipsis"></span> 📊📝
+    </span>
+  ) : (
+    impactData.reportsSubmitted.toString()
+  )}
+  icon={MapPin}
+  className="bg-white p-12 md:p-14 rounded-3xl shadow-lg border border-gray-200"
+/>
+
+<ImpactCard
+  title={<span>CO<sub>2</sub> Offset ♻️</span>}
+  value={loading ? (
+    <span style={{ fontSize: '0.675rem', fontWeight: 'normal' }}>
+      Summing up CO<sub>2</sub> savings<span className="ellipsis"></span>🌱💚
+    </span>
+  ) : (
+    `${impactData.co2Offset} kg`
+  )}
+  icon={Leaf}
+  className="bg-white p-12 md:p-14 rounded-3xl shadow-lg border border-gray-200"
+/>
+      </div>
+    </section>
       </div>
     </div>
   );
@@ -196,3 +219,4 @@ function FeatureCard({ icon: Icon, title, description }) {
     </div>
   );
 }
+

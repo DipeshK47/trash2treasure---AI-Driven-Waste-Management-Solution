@@ -236,9 +236,12 @@ export default function CollectPage() {
                 </div>
 
                 {loading ? (
-                    <div className="flex justify-center items-center h-64">
-                        <Loader className="animate-spin h-8 w-8 text-gray-500" />
-                    </div>
+                    <div className="flex justify-center font-serif items-center h-64">
+                    <span className="loading-animation text-xl">
+                        Searching reported places...
+                    </span>
+                </div>
+                
                 ) : (
                     <>
                         <div className="space-y-4">

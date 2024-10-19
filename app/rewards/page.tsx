@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { Coins, ArrowUpRight, ArrowDownRight, Gift, AlertCircle, Loader } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { getUserByEmail, getRewardTransactions, getAvailableRewards, redeemReward, createTransaction } from '@/utils/db/actions'
+import { getUserByEmail, getRewardTransactions, getAvailableRewards, createTransaction } from '@/utils/db/actions'
 import { toast } from 'react-hot-toast'
 
 type Transaction = {
@@ -141,15 +141,19 @@ export default function RewardsPage() {
     }
 
     if (loading) {
-        return <div className="flex justify-center items-center h-64">
-            <Loader className="animate-spin h-8 w-8 text-gray-600" />
-        </div>
+        return (
+            <div className="flex justify-center font-serif items-center h-64">
+    <span className="loading-animation text-xl">
+    Tallying up your earned treasures...
+    </span>
+</div>
+        )
     }
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-green-100 to-white p-8">
             <div className="max-w-4xl mx-auto">
-            <h1 className="text-3xl font-semibold mb-6 font-serif text-gray-800 whitespace-nowrap">Your Earned Rewards 💸</h1>
+                <h1 className="text-3xl font-semibold mb-6 font-serif text-gray-800 whitespace-nowrap">Earned Rewards Summary 💸</h1>
 
                 <div className="bg-white p-6 rounded-xl shadow-lg flex flex-col justify-between h-full border-l-4 border-green-500 mb-8">
                     <h2 className="text-xl font-semibold mb-4 text-gray-800">Reward Balance</h2>

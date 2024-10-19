@@ -308,7 +308,7 @@ export async function saveCollectedWaste(reportId: number, collectorId: number, 
 
 // Fetch waste collection tasks
 // Fetch waste collection tasks
-export async function getWasteCollectionTasks(limit: number = 20) {
+export async function getWasteCollectionTasks(limit: number = 100) {
     try {
         const tasks = await db.select({
             id: Reports.id,

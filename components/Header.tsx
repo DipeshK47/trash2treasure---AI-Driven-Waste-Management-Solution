@@ -1,45 +1,18 @@
-// header.tsx
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from './ui/button';
-import { 
-  Menu, 
-  Coins, 
-  Search, 
-  BellRing, 
-  User, 
-  ChevronDown, 
-  LogIn, 
-  X, 
-  Check 
-} from 'lucide-react';
-import { 
-  createUser, 
-  getUserByEmail, 
-  getUnreadNotifications, 
-  getUserBalance, 
-  markAllNotificationsAsRead 
-} from '@/utils/db/actions';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from './ui/dropdown-menu';
+import { Menu, Coins, Search, BellRing, User, ChevronDown, LogIn, Check } from 'lucide-react';
+import { createUser, getUserByEmail, getUnreadNotifications, getUserBalance, markAllNotificationsAsRead } from '@/utils/db/actions';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { Badge } from './ui/badge';
 import { Web3Auth } from '@web3auth/modal';
-import { 
-  CHAIN_NAMESPACES, 
-  IProvider, 
-  WEB3AUTH_NETWORK 
-} from '@web3auth/base';
+import { CHAIN_NAMESPACES, IProvider, WEB3AUTH_NETWORK } from '@web3auth/base';
 import { EthereumPrivateKeyProvider } from '@web3auth/ethereum-provider';
 import { useMediaQuery } from '@/hooks/userMediaQuery';
 
-const clientId = process.env.NEXT_PUBLIC_WEB3_AUTH_CLIENT_ID || ''; // Updated to NEXT_PUBLIC for client-side
+const clientId = process.env.NEXT_PUBLIC_WEB3_AUTH_CLIENT_ID || ''; // Ensure this is set in your environment variables
 
 const chainConfig = {
   chainNamespace: CHAIN_NAMESPACES.EIP155,
@@ -56,13 +29,13 @@ const privateKeyProvider = new EthereumPrivateKeyProvider({ config: { chainConfi
 interface HeaderProps {
   onMenuClick: () => void;
   totalEarnings: number;
+  setLoading: (loading: boolean) => void; // Accept setLoading from RootLayout
 }
 
-export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
+export default function Header({ onMenuClick, totalEarnings, setLoading }: HeaderProps) {
   const [web3Auth, setWeb3Auth] = useState<Web3Auth | null>(null);
   const [provider, setProvider] = useState<IProvider | null>(null);
   const [loggedIn, setLoggedIn] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [userInfo, setUserInfo] = useState<any>(null);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [balance, setBalance] = useState(0);
@@ -71,7 +44,9 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   useEffect(() => {
-    const init = async () => {
+    const initWeb3Auth = async () => {
+      
+      console.log('Initializing Web3Auth...');
       try {
         if (!clientId) {
           throw new Error('WEB3_AUTH_CLIENT_ID is not set in environment variables');
@@ -88,6 +63,7 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
         await web3AuthInstance.initModal();
 
         if (web3AuthInstance.connected) {
+          console.log('Web3Auth connected');
           setLoggedIn(true);
           const user = await web3AuthInstance.getUserInfo();
           setUserInfo(user);
@@ -98,19 +74,21 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
             try {
               await createUser(user.email, user.name || 'Anonymous user');
             } catch (error) {
-              console.error('Error creating User:', error);
+              console.error('Error creating user:', error);
             }
           }
         }
-      } catch (error: any) {
-        console.error('Error initializing Web3Auth:', error);
-        setError(error.message);
+      } catch (err: any) {
+        console.error('Error initializing Web3Auth:', err);
+        setError(err.message);
       } finally {
-        setLoading(false);
+        console.log('Web3Auth initialization complete, setting loading to false');
+        setLoading(false); // Ensure loading is stopped whether Web3Auth succeeds or fails
       }
     };
-    init();
-  }, []);
+
+    initWeb3Auth();
+  }, [setLoading]);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -215,14 +193,7 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
       }
     }
   };
-
-if (loading) {
-    return <div className="p-4 text-center">Loading Web3 auth...</div>;
-  }
-
-  if (error) {
-    return <div className="p-4 text-center text-red-500">Error: {error}</div>;
-  }
+  
 
   return (
     <header className="bg-white bg-opacity-50 backdrop-blur-lg border-b border-emerald-200 sticky top-0 z-50 shadow-sm dark:bg-gray-800 dark:border-gray-700">

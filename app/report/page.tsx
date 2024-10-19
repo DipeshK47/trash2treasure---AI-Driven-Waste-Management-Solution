@@ -26,6 +26,7 @@ export default function ReportPage() {
     createdAt: string;
   }>>([]);
 
+  const [loading, setLoading] = useState(true); // Loading state added
   const [newReport, setNewReport] = useState({
     location: '',
     type: '',
@@ -240,6 +241,8 @@ export default function ReportPage() {
         } catch (error) {
           console.error('Error fetching recent reports:', error);
           setReports([]);  // Ensure that `reports` is at least an empty array
+        } finally {
+          setLoading(false); // Set loading to false once fetching is done
         }
       } else {
         router.push('/login');
@@ -414,45 +417,53 @@ export default function ReportPage() {
           </Button>
         </form>
 
-        <h2 className="text-3xl font-semibold mb-6 text-gray-800" style={{ fontFamily: 'Times New Roman' }}>Latest Reports 📁</h2>
+        <h2 className="text-3xl font-semibold mb-6 text-gray-800" style={{ fontFamily: 'Times New Roman' }}>Reported Waste Encounters ♻️🗑️ 📁</h2>
 
-        {/* Responsive Table Container */}
-        <div className="bg-white rounded-2xl shadow-lg">
-          {/* Ensure overflow-x-auto is properly applied without conflicting overflow-hidden */}
-          <div className="overflow-x-auto w-full">
-            <table className="w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {reports.map((report) => (
-                  <tr key={report.id} className="hover:bg-gray-50 transition-colors duration-200">
-                    <td className="px-4 py-4 whitespace-normal text-sm text-gray-500">
-                      <MapPin className="inline-block w-4 h-4 mr-2 text-green-500" />
-                      {report.location}
-                    </td>
-                    <td className="px-4 py-4 whitespace-normal text-sm text-gray-500">{report.wasteType}</td>
-                    <td className="px-4 py-4 whitespace-normal text-sm text-gray-500">{report.amount}</td>
-                    <td className="px-4 py-4 whitespace-normal text-sm text-gray-500">{report.createdAt}</td>
-                  </tr>
-                ))}
-                {reports.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                      No reports submitted yet.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+{/* Responsive Table Container */}
+<div className="bg-white rounded-2xl shadow-lg">
+  {/* Ensure overflow-x-auto is properly applied without conflicting overflow-hidden */}
+  <div className="overflow-x-auto w-full">
+    <table className="w-full divide-y divide-gray-200">
+      <thead className="bg-gray-50">
+        <tr>
+          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-gray-200">
+        {loading ? (
+         <tr>
+         <td colSpan={4} className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center loading-animation">
+           Searching reported places.
+         </td>
+       </tr>
+       
+        ) : reports.length === 0 ? (
+          <tr>
+            <td colSpan={4} className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+              No reports submitted yet.
+            </td>
+          </tr>
+        ) : (
+          reports.map((report) => (
+            <tr key={report.id} className="hover:bg-gray-50 transition-colors duration-200">
+              <td className="px-4 py-4 whitespace-normal text-sm text-gray-500">
+                <MapPin className="inline-block w-4 h-4 mr-2 text-green-500" />
+                {report.location}
+              </td>
+              <td className="px-4 py-4 whitespace-normal text-sm text-gray-500">{report.wasteType}</td>
+              <td className="px-4 py-4 whitespace-normal text-sm text-gray-500">{report.amount}</td>
+              <td className="px-4 py-4 whitespace-normal text-sm text-gray-500">{report.createdAt}</td>
+            </tr>
+          ))
+        )}
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+</div>
+);
 }

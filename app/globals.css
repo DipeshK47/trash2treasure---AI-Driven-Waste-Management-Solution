@@ -83,3 +83,122 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes dots {
+  0% {
+    content: '';
+  }
+  33% {
+    content: '.';
+  }
+  66% {
+    content: '..';
+  }
+  100% {
+    content: '...';
+  }
+}
+
+.ellipsis::after {
+  content: '';
+  animation: dots 1.5s steps(3, end) infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Container for loader, centered on both desktop and mobile */
+.canvas-loader-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw; /* Ensure it takes full width */
+  background-color: #000;
+  text-align: center;
+  padding: 0 20px; /* Padding for mobile responsiveness */
+  box-sizing: border-box; /* Ensure padding doesn't break layout */
+}
+
+.canvas-loader {
+  border: 8px solid rgba(255, 255, 255, 0.2);
+  border-top: 8px solid #F1F1F1;
+  border-radius: 50%;
+  width: 70px;
+  height: 70px;
+  animation: spin 1.5s linear infinite, glow 2s ease-in-out infinite;
+}
+
+/* Responsive text for different screen sizes */
+.animated-text {
+  color: #F1F1F1;
+  font-size: 26px; /* Default size for larger screens */
+  font-weight: 800;
+  font-family: 'serif';
+  margin-top: 40px;
+  animation: pulse 1.5s infinite;
+}
+
+/* Responsive design adjustments */
+@media (max-width: 768px) {
+  .canvas-loader {
+    width: 50px;
+    height: 50px; /* Adjust size for smaller screens */
+  }
+
+  .animated-text {
+    font-size: 18px; /* Smaller text on mobile devices */
+    margin-top: 20px; /* Adjust spacing for mobile */
+  }
+}
+
+@keyframes dots {
+  0%, 20% {
+    content: '';
+  }
+  40% {
+    content: '.';
+  }
+  60% {
+    content: '..';
+  }
+  80% {
+    content: '...';
+  }
+}
+
+.loading-animation::after {
+  content: '';
+  animation: dots 1.5s steps(3, end) infinite;
+}
